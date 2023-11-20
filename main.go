@@ -2,12 +2,21 @@ package main
 
 import (
 	"fmt"
+	"bytes"
+	"encoding/json"
 	"net"
 	"net/http"
 	"os"
 	"io/ioutil"
+	"time"
 	"github.com/gin-gonic/gin"
 )
+// Struct to represent the data sent in the POST request
+type NodeDetails struct {
+	IPAddress      string `json:"ipAddress"`
+	IPFSClusterID  string `json:"ipfsClusterId"`
+	IPFSID         string `json:"ipfsId"`
+}
 /////////////////////routes bind with specific function behind it///////////////////
 		//////////////////////////////////////////////////////
 func main() {
@@ -35,9 +44,21 @@ func main() {
 		//////////////////////////////////////////////////////
 	
 func getStatus(c *gin.Context) {
-	// Implement the logic for the getStatus function
-	// ...
-	c.JSON(http.StatusOK, gin.H{"isClusterOnline": true})
+	clusterID, err := getClusterID()
+	if err != nil {
+		// Handle the error as needed
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch cluster ID"})
+		return
+	}
+
+	// Convert the byte slice to a string
+	clusterIDString := string(clusterID)
+
+	// Check if clusterIDString is not empty
+	isClusterOnline := clusterIDString != ""
+
+	// Send the response
+	c.JSON(http.StatusOK, gin.H{"isClusterOnline": isClusterOnline})
 }
 
 func playVideo(c *gin.Context) {
@@ -167,6 +188,49 @@ func getClusterID() ([]byte, error) {
 	return body, nil
 }
 
+// Function to  update ip address, ipfs cluster id, ipfs id
+func updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId string) {
+	// Create a JSON payload from the provided data
+	payload := NodeDetails{
+		IPAddress:     ipAddress,
+		IPFSClusterID: ipfsClusterId,
+		IPFSID:        ipfsId,
+	}
+
+	// Convert the payload to JSON
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		fmt.Println("Error marshaling JSON:", err)
+		return
+	}
+
+	// Make an HTTP POST request to update node details
+	url := fmt.Sprintf("%s/node/update-node-details", os.Getenv("API_SERVER_URL"))
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		// Handle the HTTP request error
+		fmt.Println("Error making HTTP request:", err)
+
+		// Retry after 5 seconds
+		time.Sleep(5 * time.Second)
+		updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Check the response status
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Error updating node details. Status:", resp.Status)
+
+		// Retry after 5 seconds
+		time.Sleep(5 * time.Second)
+		updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId)
+		return
+	}
+
+	// Log the result of the update operation
+	fmt.Println("Node details updated successfully")
+}
 ///////////////////////// Function to test the helper functions////////////////
 				//////////////////////////////////////////////////////
 func testHelperFunctions() {
