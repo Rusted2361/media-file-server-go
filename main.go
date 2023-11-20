@@ -8,11 +8,11 @@ import (
 	"io/ioutil"
 	"github.com/gin-gonic/gin"
 )
-
+/////////////////////routes bind with specific function behind it///////////////////
+		//////////////////////////////////////////////////////
 func main() {
 
-	/////////////////////routes bind with specific function behind it///////////////////
-		//////////////////////////////////////////////////////
+	
 	router := gin.Default()
 
 	router.GET("/api/file/node/status", getStatus)
@@ -26,11 +26,13 @@ func main() {
 	//////////////////Test helper function////////////////
 	//////////////////////////////////////////////////////
 	testHelperFunctions()
+	
+
+	
 }
 
-
 ///////////////////////Functions behind each API are defined here////////////////
-	//////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////
 	
 func getStatus(c *gin.Context) {
 	// Implement the logic for the getStatus function
@@ -56,10 +58,8 @@ func downloadFile(c *gin.Context) {
 	c.String(http.StatusOK, "File content for download")
 }
 
-
-
-///////////////////////Helper Functions are defined here////////////////
-	//////////////////////////////////////////////////////
+/////////////////////Helper Functions are defined here////////////////
+		//////////////////////////////////////////////////////
 	
 //get ipaddress array
 func getIPAddress() ([]string, error) {
@@ -101,7 +101,7 @@ func getIPAddress() ([]string, error) {
 	return addresses, nil
 }
 
-// getIpfsId fetches information from an IPFS node based on the given IP address.
+// getIpfsId fetches ID from an IPFS node based on the given IP address.
 func getIpfsId(ipAddress string) (string, error) {
 	// Construct the URL for the IPFS node's /api/v0/id endpoint
 	url := fmt.Sprintf("http://%s:5001/api/v0/id", ipAddress)
@@ -125,14 +125,16 @@ func getIpfsId(ipAddress string) (string, error) {
 	return string(body), nil
 }
 
-
-func getClusterID() (*http.Response, error) {
+// Function to get ID from an IPFS cluster based on the environment
+func getClusterID() ([]byte, error) {
+	// Get the environment variable or default to 'development'
 	env := os.Getenv("ENV")
 	if env == "" {
 		env = "development"
 	}
 
-	url := ""
+	// Define the URL based on the environment
+	var url string
 	switch env {
 	case "development":
 		url = "http://localhost:9094/id"
@@ -140,22 +142,37 @@ func getClusterID() (*http.Response, error) {
 		url = "http://cluster-internal.io:9094/id"
 	}
 
+	// Make an HTTP GET request
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
-	return resp, nil
+	// Read the response body
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check for HTTP errors
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("HTTP error: %s", resp.Status)
+	}
+
+	// Print the status URL to the console
+	fmt.Println("Status URL:", url)
+
+	// Return the response body
+	return body, nil
 }
 
-
-
-
 ///////////////////////// Function to test the helper functions////////////////
-	//////////////////////////////////////////////////////
+				//////////////////////////////////////////////////////
 func testHelperFunctions() {
 	// Call the function to get IP addresses
 	ipAddresses, err := getIPAddress()
+	fmt.Println("Executing getIPAddress")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -168,12 +185,22 @@ func testHelperFunctions() {
 
 	// Test getIpfsId
 	ipfsNodeInformation, err := getIpfsId("localhost")
+	fmt.Println("Executing getIpfsID")
 	if err != nil {
 		// Handle the error, e.g., print it to the console
 		fmt.Println("Error in getIpfsId:", err)
 		return
 	}
-
 	// Print the information obtained from the IPFS node
 	fmt.Println("IPFS Node Information:", ipfsNodeInformation)
+
+	// Test getClusterID
+	ipfsClusterResponse, err := getClusterID()
+	fmt.Println("Executing getClusterID")
+	if err != nil {
+		fmt.Println("Error in getClusterID:", err)
+		return
+	}
+	// Process ipfsClusterResponse as needed
+	fmt.Println("IPFS Cluster Response:", string(ipfsClusterResponse))
 }
