@@ -151,9 +151,9 @@ func getIpfsId(ipAddress string) (string, error) {
 func getClusterID() ([]byte, error) {
 	// Get the environment variable or default to 'development'
 	env := os.Getenv("ENV")
-	// if env == "" {
-	// 	env = "development"
-	// }
+	if env == "" {
+		env = "development"
+	}
 
 	// Define the URL based on the environment
 	var url string
@@ -231,41 +231,4 @@ func updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId string) {
 
 	// Log the result of the update operation
 	fmt.Println("Node details updated successfully")
-}
-///////////////////////// Function to test the helper functions////////////////
-				//////////////////////////////////////////////////////
-func testHelperFunctions() {
-	// Call the function to get IP addresses
-	ipAddresses, err := getIPAddress()
-	fmt.Println("Executing getIPAddress")
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	// Print the retrieved IP addresses
-	fmt.Println("IP Addresses:")
-	for _, ip := range ipAddresses {
-		fmt.Println(ip)
-	}
-
-	// Test getIpfsId
-	ipfsNodeInformation, err := getIpfsId("localhost")
-	fmt.Println("Executing getIpfsID")
-	if err != nil {
-		// Handle the error, e.g., print it to the console
-		fmt.Println("Error in getIpfsId:", err)
-		return
-	}
-	// Print the information obtained from the IPFS node
-	fmt.Println("IPFS Node Information:", ipfsNodeInformation)
-
-	// Test getClusterID
-	ipfsClusterResponse, err := getClusterID()
-	fmt.Println("Executing getClusterID")
-	if err != nil {
-		fmt.Println("Error in getClusterID:", err)
-		return
-	}
-	// Process ipfsClusterResponse as needed
-	fmt.Println("IPFS Cluster Response:", string(ipfsClusterResponse))
 }
