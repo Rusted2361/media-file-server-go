@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"bytes"
+	"log"
 	"encoding/json"
 	"net"
 	"net/http"
@@ -45,6 +46,9 @@ func main() {
 	
 func getStatus(c *gin.Context) {
 	clusterID, err := getClusterID()
+	ip_address, err := getIPAddress()
+	log.Println("ip_address:", ip_address)
+	log.Println("cluster-id:", clusterID)
 	if err != nil {
 		// Handle the error as needed
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch cluster ID"})
@@ -150,9 +154,9 @@ func getIpfsId(ipAddress string) (string, error) {
 func getClusterID() ([]byte, error) {
 	// Get the environment variable or default to 'development'
 	env := os.Getenv("ENV")
-	if env == "" {
-		env = "development"
-	}
+	// if env == "" {
+	// 	env = "development"
+	// }
 
 	// Define the URL based on the environment
 	var url string
