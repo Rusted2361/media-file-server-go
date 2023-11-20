@@ -46,9 +46,6 @@ func main() {
 	
 func getStatus(c *gin.Context) {
 	clusterID, err := getClusterID()
-	ip_address, err := getIPAddress()
-	log.Println("ip_address:", ip_address)
-	log.Println("cluster-id:", clusterID)
 	if err != nil {
 		// Handle the error as needed
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch cluster ID"})
