@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"bytes"
-	"log"
 	"encoding/json"
 	"net"
 	"net/http"
@@ -35,7 +34,7 @@ func main() {
 	}
 	//////////////////Test helper function////////////////
 	//////////////////////////////////////////////////////
-	testHelperFunctions()
+	// testHelperFunctions()
 	
 
 	
@@ -148,21 +147,22 @@ func getIpfsId(ipAddress string) (string, error) {
 }
 
 // Function to get ID from an IPFS cluster based on the environment
-func getClusterID() ([]byte, error) {
-	// Get the environment variable or default to 'development'
-	env := os.Getenv("ENV")
-	if env == "" {
-		env = "development"
+func getClusterID(ipAddress ...string) ([]byte, error) {
+	
+	// if ipAddress == "" {
+	// 	ipAddress = "localhost"
+	// }
+	// // Construct the URL
+	// url := fmt.Sprintf("http://%s:9094/id", ipAddress)
+
+	var url string
+
+	if len(ipAddress) > 0 {
+		url = fmt.Sprintf("http://%s:9094/id", ipAddress[0])
+	} else {
+		url = "http://localhost:9094/id"
 	}
 
-	// Define the URL based on the environment
-	var url string
-	switch env {
-	case "development":
-		url = "http://localhost:9094/id"
-	default:
-		url = "http://cluster-internal.io:9094/id"
-	}
 
 	// Make an HTTP GET request
 	resp, err := http.Get(url)
@@ -185,6 +185,7 @@ func getClusterID() ([]byte, error) {
 	// Print the status URL to the console
 	fmt.Println("Status URL:", url)
 
+	
 	// Return the response body
 	return body, nil
 }
