@@ -11,7 +11,7 @@ import (
 	"io/ioutil"
 	"time"
 	"log"
-	//"sort"
+	"sort"
 	"strconv"
 	"strings"
 	"github.com/gin-gonic/gin"
@@ -81,10 +81,86 @@ func getStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"isClusterOnline": isClusterOnline})
 }
 
+
 func playVideo(c *gin.Context) {
-	// Implement the logic for the playVideo function
-	// ...
-	c.JSON(http.StatusOK, gin.H{"message": "Video playing"})
+	accessKey := c.Param("accessKey")
+	token := c.Param("token")
+
+	if !verifyToken(accessKey, token) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Invalid access token",
+		})
+		return
+	}
+
+	// Assuming accessDataResponse is the data structure returned from the token verification
+	accessData := getAccessDataResponse(accessKey, token)
+
+	ipfsMetaData := accessData.FileMetaData
+	sort.Slice(ipfsMetaData, func(i, j int) bool {
+		return ipfsMetaData[i].Index < ipfsMetaData[j].Index
+	})
+
+	path := fmt.Sprintf("videos/%s%s", accessData.AccessKey, accessData.FileName)
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		writableStream, err := os.Create(path)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to create writable stream",
+			})
+			return
+		}
+
+		for _, meta := range ipfsMetaData {
+			fileResponse, err := http.Get(fmt.Sprintf("http://46.101.133.110:8080/api/v0/cat/%s", meta.CID))
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "Failed to fetch file response from IPFS",
+				})
+				return
+			}
+
+			fileBytes, err := io.ReadAll(fileResponse.Body)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "Failed to read file response body",
+				})
+				return
+			}
+
+			decryptedData := decryptedSecretKeyAndFile(accessData.Data, accessData.SecretKey, accessData.AccessKey, accessData.IV, fileBytes, accessData.Salt)
+
+			_, err = writableStream.Write(decryptedData)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "Failed to write decrypted data to the writable stream",
+				})
+				return
+			}
+		}
+
+		writableStream.Close()
+
+		stat, err := os.Stat(path)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to get file statistics",
+			})
+			return
+		}
+
+		fileSize := stat.Size()
+		rangeHeader := c.GetHeader("Range")
+
+		if rangeHeader != "" {
+			handleByteRange(c, path, fileSize)
+		} else {
+			handleFullContent(c, path, fileSize)
+		}
+	} else {
+		handleExistingFile(c, path)
+	}
 }
 
 func getAccessFile(c *gin.Context) {
