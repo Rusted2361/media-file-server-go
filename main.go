@@ -7,10 +7,15 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"io"
 	"io/ioutil"
 	"time"
-	"github.com/gin-gonic/gin"
 	"log"
+	//"sort"
+	"strconv"
+	"strings"
+	"github.com/gin-gonic/gin"
+	
 )
 // Struct to represent the data sent in the POST request
 type NodeDetails struct {
@@ -211,6 +216,81 @@ func getClusterID(ipAddress ...string) ([]byte, error) {
 	return body, nil
 }
 
+func decryptedSecretKeyAndFile(data, secretKey, accessKey, iv []byte, fileResponse []byte, salt string) []byte {
+	// Replace with your decryption logic
+	return fileResponse
+}
+
+func verifyToken(accessKey, token string) bool {
+	// Replace with your token verification logic
+	return true
+}
+
+func getAccessDataResponse(accessKey, token string) AccessDataResponse {
+	// Replace with your logic to get access data from token verification
+	return AccessDataResponse{}
+}
+
+func handleByteRange(c *gin.Context, path string, fileSize int64) {
+	rangeHeader := c.GetHeader("Range")
+	parts := strings.Split(strings.ReplaceAll(rangeHeader, "bytes=", ""), "-")
+	start, _ := strconv.ParseInt(parts[0], 10, 64)
+	end, _ := strconv.ParseInt(parts[1], 10, 64)
+	chunkSize := end - start + 1
+
+	file, err := os.Open(path)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to open file",
+		})
+		return
+	}
+	defer file.Close()
+
+	c.Writer.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", start, end, fileSize))
+	c.Writer.Header().Set("Accept-Ranges", "bytes")
+	c.Writer.Header().Set("Content-Length", fmt.Sprintf("%d", chunkSize))
+	c.Writer.Header().Set("Content-Type", "video/mp4")
+	c.Writer.WriteHeader(http.StatusPartialContent)
+
+	_, err = file.Seek(start, io.SeekStart)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to seek file",
+		})
+		return
+	}
+
+	io.CopyN(c.Writer, file, chunkSize)
+}
+
+func handleFullContent(c *gin.Context, path string, fileSize int64) {
+	c.Writer.Header().Set("Content-Length", fmt.Sprintf("%d", fileSize))
+	c.Writer.Header().Set("Content-Type", "video/mp4")
+	c.Writer.WriteHeader(http.StatusOK)
+
+	file, err := os.Open(path)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to open file",
+		})
+		return
+	}
+	defer file.Close()
+
+	io.Copy(c.Writer, file)
+}
+
+func handleExistingFile(c *gin.Context, path string) {
+	// Functionality for streaming and response of an existing file
+}
+
+
+
+
+
+////////////////////////////Recursive functions///////////////////////
+		//////////////////////////////////////////////////////
 // Function to  update ip address, ipfs cluster id, ipfs id
 func updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId string) {
 	// Create a JSON payload from the provided data
@@ -255,6 +335,7 @@ func updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId string) {
 	fmt.Println("Node details updated successfully")
 }
 
+// this will recursively check for clusterid and ipfs id
 func heartBeat() {
 	for {
 		// Check the local IPFS Cluster and IPFS node status
@@ -288,3 +369,11 @@ func heartBeat() {
 		time.Sleep(5 * time.Second)
 	}
 }
+
+
+
+
+
+
+
+
