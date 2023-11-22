@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"time"
 	"github.com/gin-gonic/gin"
+	"log"
 )
 // Struct to represent the data sent in the POST request
 type NodeDetails struct {
@@ -20,8 +21,9 @@ type NodeDetails struct {
 /////////////////////routes bind with specific function behind it///////////////////
 		//////////////////////////////////////////////////////
 func main() {
+	// Create a new Goroutine for the heartBeat function
+	//go heartBeat()
 
-	
 	router := gin.Default()
 
 	router.GET("/api/file/node/status", getStatus)
@@ -29,14 +31,24 @@ func main() {
 	router.GET("/api/file/view/access/:accessKey/:token", getAccessFile)
 	router.GET("/api/file/download/:accessKey/:token", downloadFile)
 
-	if err := router.Run(":3008"); err != nil {
-		fmt.Println("Failed to start the server:", err)
-	}
-	//////////////////Test helper function////////////////
-	//////////////////////////////////////////////////////
-	// testHelperFunctions()
-	
+	// if err := router.Run(":3008"); err != nil {
+	// 	fmt.Println("Failed to start the server:", err)
+	// }
+	// Run the Gin server on port 3008 in a Goroutine
+	go func() {
+		if err := router.Run(":3008"); err != nil {
+			fmt.Println("Failed to start the server:", err)
+		}
+	}()
 
+	// Wait for 5 seconds
+	<-time.After(5 * time.Second)
+
+	// Start the heartBeat function after 5 seconds
+	go heartBeat()
+
+	// Block the main Goroutine so that the program doesn't exit
+	select {}
 	
 }
 
@@ -123,9 +135,15 @@ func getIPAddress() ([]string, error) {
 }
 
 // getIpfsId fetches ID from an IPFS node based on the given IP address.
-func getIpfsId(ipAddress string) (string, error) {
+func getIpfsId(ipAddress ...string) (string, error) {
 	// Construct the URL for the IPFS node's /api/v0/id endpoint
-	url := fmt.Sprintf("http://%s:5001/api/v0/id", ipAddress)
+	var url string
+
+	if len(ipAddress) > 0 {
+		url = fmt.Sprintf("http://%s:9094/id", ipAddress[0])
+	} else {
+		url = "http://localhost:9094/id"
+	}
 
 	// Make an HTTP GET request to the IPFS node
 	response, err := http.Get(url)
@@ -232,4 +250,38 @@ func updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId string) {
 
 	// Log the result of the update operation
 	fmt.Println("Node details updated successfully")
+}
+
+func heartBeat() {
+	for {
+		// Check the local IPFS Cluster and IPFS node status
+		clusterResponseLocal, _ := getClusterID()
+		ipfsResponseLocal, _ := getIpfsId()
+
+		// If either local IPFS Cluster or IPFS node is not running, exit the application
+		if len(clusterResponseLocal) == 0 || len(ipfsResponseLocal) == 0 {
+			fmt.Println("Ipfs Cluster or Ipfs is not running locally.")
+			//exit
+			os.Exit(1)
+
+		}
+
+
+		// Check the global (online) IPFS Cluster and IPFS node status
+		clusterResponseOnline, _ := getClusterID()
+		ipfsResponseLocalOnline, _ := getIpfsId()
+
+		// If either global IPFS Cluster or IPFS node is not running, exit the application
+		if len(clusterResponseOnline) == 0 || len(ipfsResponseLocalOnline) == 0 {
+			fmt.Println("Ipfs Cluster or Ipfs is not running globally.")
+			//exit
+			os.Exit(1)
+
+		}
+
+		// Display a message in the terminal
+		log.Print("Heartbeat check completed. Waiting for the next check...")
+		// Sleep for 5 seconds before the next heartbeat
+		time.Sleep(5 * time.Second)
+	}
 }
