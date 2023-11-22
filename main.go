@@ -21,6 +21,8 @@ type NodeDetails struct {
 /////////////////////routes bind with specific function behind it///////////////////
 		//////////////////////////////////////////////////////
 func main() {
+
+	//////uncomment this function to immediately shut service if cluster id not found
 	// Create a new Goroutine for the heartBeat function
 	//go heartBeat()
 
@@ -31,24 +33,25 @@ func main() {
 	router.GET("/api/file/view/access/:accessKey/:token", getAccessFile)
 	router.GET("/api/file/download/:accessKey/:token", downloadFile)
 
-	// if err := router.Run(":3008"); err != nil {
-	// 	fmt.Println("Failed to start the server:", err)
-	// }
+	if err := router.Run(":3008"); err != nil {
+		fmt.Println("Failed to start the server:", err)
+	}
+	///////////uncomment this function to enable heartbeat function with 5 second delay will not immediately shut down/////////////
 	// Run the Gin server on port 3008 in a Goroutine
-	go func() {
-		if err := router.Run(":3008"); err != nil {
-			fmt.Println("Failed to start the server:", err)
-		}
-	}()
+	// go func() {
+	// 	if err := router.Run(":3008"); err != nil {
+	// 		fmt.Println("Failed to start the server:", err)
+	// 	}
+	// }()
 
-	// Wait for 5 seconds
-	<-time.After(5 * time.Second)
+	// // Wait for 5 seconds
+	// <-time.After(5 * time.Second)
 
-	// Start the heartBeat function after 5 seconds
-	go heartBeat()
+	// // Start the heartBeat function after 5 seconds
+	// go heartBeat()
 
-	// Block the main Goroutine so that the program doesn't exit
-	select {}
+	// // Block the main Goroutine so that the program doesn't exit
+	// select {}
 	
 }
 
