@@ -83,18 +83,17 @@ func getStatus(c *gin.Context) {
 
 
 func playVideo(c *gin.Context) {
+	
+	// Extract access key and token from URL parameters
 	accessKey := c.Param("accessKey")
 	token := c.Param("token")
 
-	if !verifyToken(accessKey, token) {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Invalid access token",
-		})
+	// Verify the access token
+	accessData, err := verifyAccessToken(accessKey, token)
+	if err != nil {
+		fmt.Println("Error:", err)
 		return
 	}
-
-	// Assuming accessDataResponse is the data structure returned from the token verification
-	accessData := getAccessDataResponse(accessKey, token)
 
 	ipfsMetaData := accessData.FileMetaData
 	sort.Slice(ipfsMetaData, func(i, j int) bool {
@@ -292,14 +291,45 @@ func getClusterID(ipAddress ...string) ([]byte, error) {
 	return body, nil
 }
 
+
 func decryptedSecretKeyAndFile(data, secretKey, accessKey, iv []byte, fileResponse []byte, salt string) []byte {
 	// Replace with your decryption logic
 	return fileResponse
 }
 
-func verifyToken(accessKey, token string) bool {
-	// Replace with your token verification logic
-	return true
+func verifyAccessToken(accessKey, token string) (map[string]interface{}, error) {
+	// Define the request payload
+	requestData := map[string]string{"accessKey": accessKey, "token": token}
+	requestBody, err := json.Marshal(requestData)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make the HTTP POST request
+	resp, err := http.Post(
+		"http://your-api-server/file/access/verify-token",
+		"application/json",
+		bytes.NewBuffer(requestBody),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	responseBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the JSON response
+	var responseData map[string]interface{}
+	err = json.Unmarshal(responseBody, &responseData)
+	if err != nil {
+		return nil, err
+	}
+
+	return responseData, nil
 }
 
 func getAccessDataResponse(accessKey, token string) AccessDataResponse {
