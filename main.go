@@ -12,7 +12,7 @@ import (
 	"time"
 	"log"
 	//"time"
-	//"sort"
+	"sort"
 	//"strconv"
 	//"strings"
 	"github.com/gin-gonic/gin"
@@ -25,10 +25,6 @@ type NodeDetails struct {
 	IPFSID         string `json:"ipfsId"`
 }
 
-type ResponseData struct {
-	Data        map[string]interface{} `json:"data"`
-	FileMetaData map[string]interface{} `json:"data"`
-}
 
 /////////////////////routes bind with specific function behind it///////////////////
 		//////////////////////////////////////////////////////
@@ -100,29 +96,34 @@ func playVideo(c *gin.Context) {
 		fmt.Println("Error:", err)
 		return
 	}
-	//log.Println("AccessDataResponse value:", AccessDataResponse)
-	dataValue, ok := AccessDataResponse["message"].(string)
-	if ok {
-		fmt.Println("Data value:", dataValue)
-	} else {
-		fmt.Println("Data is not a string")
-	}
-	// Now you can access the desired fields
-	//fileMetaData := AccessDataResponse.FileMetaData
-	//accessKey := AccessDataResponse.AccessKey
-	//fileName := AccessDataResponse.FileName
-
-	// Print or use the values as needed
-	//log.Println("FileMetaData:", fileMetaData)
-	//log.Println("AccessKey:", accessKey)
-	//log.Println("FileName:", fileName)
-	//var accessData = AccessDataResponse.Data;
-
-	//log.Println("accessData value:", accessData)
-	// ipfsMetaData := accessData.FileMetaData
-	// sort.Slice(ipfsMetaData, func(i, j int) bool {
-	// 	return ipfsMetaData[i].Index < ipfsMetaData[j].Index
-	// })
+	//This method uses map interfaces to deal with response data
+    accessData, ok := AccessDataResponse["data"].(map[string]interface{})
+    if ok {
+         fmt.Println("accessData value is accessed")
+     } else {
+         fmt.Println("accessData is not a valid map")
+     }
+    fileMetaDataValue, ok := accessData["fileMetaData"].([]interface{})
+    if ok {
+     fmt.Println("fileMetaDataValue is a valid array")
+    } else {
+     fmt.Println("Data is not a string")
+    }
+    // Custom sorting function
+    sort.Slice(fileMetaDataValue, func(i, j int) bool {
+     indexI, okI := fileMetaDataValue[i].(map[string]interface{})["index"].(float64)
+     indexJ, okJ := fileMetaDataValue[j].(map[string]interface{})["index"].(float64)
+     // Check if type assertions were successful
+     if okI && okJ {
+         return int(indexI) < int(indexJ)
+     }
+     // Handle the case where type assertions failed
+     return false
+    })
+    // Storing sorted data in ipfsMetaData
+    ipfsMetaData := fileMetaDataValue
+    // Print the sorted ipfsMetaData
+    fmt.Println("Sorted ipfsMetaData:", ipfsMetaData)
 }
 
 /////////////////////Helper Functions are defined here////////////////
@@ -248,7 +249,7 @@ func decryptedSecretKeyAndFile(data, secretKey, accessKey, iv []byte, fileRespon
 	return fileResponse
 }
 //func verifyAccessToken(accessKey, token string) (*AccessDataResponse, error){
-	func verifyAccessToken(accessKey, token string) (map[string]interface{}, error) {
+func verifyAccessToken(accessKey, token string) (map[string]interface{}, error) {
 	// Define the request payload
 	requestData := map[string]string{"accessKey": accessKey, "token": token}
 	requestBody, err := json.Marshal(requestData)
