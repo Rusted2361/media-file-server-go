@@ -244,10 +244,6 @@ func getClusterID(ipAddress ...string) ([]byte, error) {
 }
 
 
-func decryptedSecretKeyAndFile(data, secretKey, accessKey, iv []byte, fileResponse []byte, salt string) []byte {
-	// Replace with your decryption logic
-	return fileResponse
-}
 //func verifyAccessToken(accessKey, token string) (*AccessDataResponse, error){
 func verifyAccessToken(accessKey, token string) (map[string]interface{}, error) {
 	// Define the request payload
@@ -292,50 +288,6 @@ func verifyAccessToken(accessKey, token string) (map[string]interface{}, error) 
 
 ////////////////////////////Recursive functions///////////////////////
 		//////////////////////////////////////////////////////
-// Function to  update ip address, ipfs cluster id, ipfs id
-func updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId string) {
-	// Create a JSON payload from the provided data
-	payload := NodeDetails{
-		IPAddress:     ipAddress,
-		IPFSClusterID: ipfsClusterId,
-		IPFSID:        ipfsId,
-	}
-
-	// Convert the payload to JSON
-	jsonPayload, err := json.Marshal(payload)
-	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
-		return
-	}
-
-	// Make an HTTP POST request to update node details
-	url := fmt.Sprintf("%s/node/update-node-details", os.Getenv("API_SERVER_URL"))
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonPayload))
-	if err != nil {
-		// Handle the HTTP request error
-		fmt.Println("Error making HTTP request:", err)
-
-		// Retry after 5 seconds
-		time.Sleep(5 * time.Second)
-		updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId)
-		return
-	}
-	defer resp.Body.Close()
-
-	// Check the response status
-	if resp.StatusCode != http.StatusOK {
-		fmt.Println("Error updating node details. Status:", resp.Status)
-
-		// Retry after 5 seconds
-		time.Sleep(5 * time.Second)
-		updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId)
-		return
-	}
-
-	// Log the result of the update operation
-	fmt.Println("Node details updated successfully")
-}
-
 // this will recursively check for clusterid and ipfs id
 func heartBeat() {
 	for {
