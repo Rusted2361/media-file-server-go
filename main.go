@@ -6,13 +6,12 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
-	"os"
+	//"os"
 	//"io"
 	"io/ioutil"
-	"time"
-	"log"
 	//"time"
-	//"sort"
+	//"time"
+//	"sort"
 	//"strconv"
 	//"strings"
 	"github.com/gin-gonic/gin"
@@ -25,18 +24,60 @@ type NodeDetails struct {
 	IPFSID         string `json:"ipfsId"`
 }
 
-type ResponseData struct {
-	Data        map[string]interface{} `json:"data"`
-	FileMetaData map[string]interface{} `json:"data"`
+
+type Allocation struct {
+	Allocations string `json:"allocations"`
+	CID         string   `json:"cid"`
+	Index       int      `json:"index"`
+	Name        string   `json:"name"`
+	Size        float64  `json:"size"`
 }
 
+type FileMetaData struct {
+	Allocations []string `json:"allocations"`
+	CID         string             `json:"cid"`
+	Index       int                `json:"index"`
+	Name        string             `json:"name"`
+	Size        float64            `json:"size"`
+}
+
+type AccessData struct {
+	__v             int    `json:"__v"`
+	_id            string`json:"_id"`
+	AccessKey      string `json:"accessKey"`
+	AccessType     string `json:"accessType"`
+	AccessUserEmail string `json:"accessUserEmail"`
+	AccessUserId   string `json:"accessUserId"`
+	BucketId       string `json:"bucketId"`
+	CreatedAt      string `json:"createdAt"`
+	Data           string `json:"data"` 
+	FileId         string `json:"fileId"`
+	FileMetaData   []FileMetaData `json:"fileMetaData"`
+	FileName        string           `json:"fileName"`
+	FileSize        float64          `json:"fileSize"`
+	FileType        string           `json:"fileType"`
+	IV              string           `json:"iv"`
+	ObjectType      string           `json:"objectType"`
+	Salt            string           `json:"salt"`
+	SecretKey       string           `json:"secretKey"`
+	SharedStatus    bool             `json:"sharedStatus"`
+	Status          string           `json:"status"`
+	TokenSalt       string           `json:"tokenSalt"`
+	UpdatedAt       string           `json:"updatedAt"`
+	UserAvatar      string           `json:"userAvatar"`
+	UserID          string           `json:"userId"`
+	UserName        string           `json:"userName"`
+}
+
+type Response struct {
+	Data AccessData `json:"data"`
+	Message       string `json:"message"`
+	Status        int    `json:"status"`
+	Success       bool   `json:"success"`
+}
 /////////////////////routes bind with specific function behind it///////////////////
 		//////////////////////////////////////////////////////
 func main() {
-
-	//////uncomment this function to immediately shut service if cluster id not found
-	// Create a new Goroutine for the heartBeat function
-	//go heartBeat()
 
 	router := gin.Default()
 
@@ -48,22 +89,6 @@ func main() {
 	if err := router.Run(":3008"); err != nil {
 		fmt.Println("Failed to start the server:", err)
 	}
-	///////////uncomment this function to enable heartbeat function with 5 second delay will not immediately shut down/////////////
-	// Run the Gin server on port 3008 in a Goroutine
-	// go func() {
-	// 	if err := router.Run(":3008"); err != nil {
-	// 		fmt.Println("Failed to start the server:", err)
-	// 	}
-	// }()
-
-	// // Wait for 5 seconds
-	// <-time.After(5 * time.Second)
-
-	// // Start the heartBeat function after 5 seconds
-	// go heartBeat()
-
-	// // Block the main Goroutine so that the program doesn't exit
-	// select {}
 	
 }
 
@@ -99,31 +124,30 @@ func playVideo(c *gin.Context) {
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
-	}
-	//log.Println("AccessDataResponse value:", AccessDataResponse)
-	dataValue, ok := AccessDataResponse["message"].(string)
-	if ok {
-		fmt.Println("Data value:", dataValue)
 	} else {
-		fmt.Println("Data is not a string")
+		fmt.Println("AccessDataResponse value:", AccessDataResponse)
 	}
-	// Now you can access the desired fields
-	//fileMetaData := AccessDataResponse.FileMetaData
-	//accessKey := AccessDataResponse.AccessKey
-	//fileName := AccessDataResponse.FileName
 
-	// Print or use the values as needed
-	//log.Println("FileMetaData:", fileMetaData)
-	//log.Println("AccessKey:", accessKey)
-	//log.Println("FileName:", fileName)
-	//var accessData = AccessDataResponse.Data;
+	// Convert the map to JSON
+	jsonData, err := json.Marshal(AccessDataResponse)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
 
-	//log.Println("accessData value:", accessData)
-	// ipfsMetaData := accessData.FileMetaData
-	// sort.Slice(ipfsMetaData, func(i, j int) bool {
-	// 	return ipfsMetaData[i].Index < ipfsMetaData[j].Index
-	// })
+	// Unmarshal the JSON data into the struct
+	var response Response
+	err = json.Unmarshal(jsonData, &response)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	// Now 'response' should contain your structured data
+	fmt.Printf("%+v\n", response)
+
 }
+
 
 /////////////////////Helper Functions are defined here////////////////
 		//////////////////////////////////////////////////////
@@ -248,7 +272,7 @@ func decryptedSecretKeyAndFile(data, secretKey, accessKey, iv []byte, fileRespon
 	return fileResponse
 }
 //func verifyAccessToken(accessKey, token string) (*AccessDataResponse, error){
-	func verifyAccessToken(accessKey, token string) (map[string]interface{}, error) {
+func verifyAccessToken(accessKey, token string) (map[string]interface{}, error) {
 	// Define the request payload
 	requestData := map[string]string{"accessKey": accessKey, "token": token}
 	requestBody, err := json.Marshal(requestData)
@@ -287,93 +311,3 @@ func decryptedSecretKeyAndFile(data, secretKey, accessKey, iv []byte, fileRespon
 	return responseData, nil
     //return &response, nil
 }
-
-
-////////////////////////////Recursive functions///////////////////////
-		//////////////////////////////////////////////////////
-// Function to  update ip address, ipfs cluster id, ipfs id
-func updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId string) {
-	// Create a JSON payload from the provided data
-	payload := NodeDetails{
-		IPAddress:     ipAddress,
-		IPFSClusterID: ipfsClusterId,
-		IPFSID:        ipfsId,
-	}
-
-	// Convert the payload to JSON
-	jsonPayload, err := json.Marshal(payload)
-	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
-		return
-	}
-
-	// Make an HTTP POST request to update node details
-	url := fmt.Sprintf("%s/node/update-node-details", os.Getenv("API_SERVER_URL"))
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonPayload))
-	if err != nil {
-		// Handle the HTTP request error
-		fmt.Println("Error making HTTP request:", err)
-
-		// Retry after 5 seconds
-		time.Sleep(5 * time.Second)
-		updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId)
-		return
-	}
-	defer resp.Body.Close()
-
-	// Check the response status
-	if resp.StatusCode != http.StatusOK {
-		fmt.Println("Error updating node details. Status:", resp.Status)
-
-		// Retry after 5 seconds
-		time.Sleep(5 * time.Second)
-		updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId)
-		return
-	}
-
-	// Log the result of the update operation
-	fmt.Println("Node details updated successfully")
-}
-
-// this will recursively check for clusterid and ipfs id
-func heartBeat() {
-	for {
-		// Check the local IPFS Cluster and IPFS node status
-		clusterResponseLocal, _ := getClusterID()
-		ipfsResponseLocal, _ := getIpfsId()
-
-		// If either local IPFS Cluster or IPFS node is not running, exit the application
-		if len(clusterResponseLocal) == 0 || len(ipfsResponseLocal) == 0 {
-			fmt.Println("Ipfs Cluster or Ipfs is not running locally.")
-			//exit
-			os.Exit(1)
-
-		}
-
-
-		// Check the global (online) IPFS Cluster and IPFS node status
-		clusterResponseOnline, _ := getClusterID()
-		ipfsResponseLocalOnline, _ := getIpfsId()
-
-		// If either global IPFS Cluster or IPFS node is not running, exit the application
-		if len(clusterResponseOnline) == 0 || len(ipfsResponseLocalOnline) == 0 {
-			fmt.Println("Ipfs Cluster or Ipfs is not running globally.")
-			//exit
-			os.Exit(1)
-
-		}
-
-		// Display a message in the terminal
-		log.Print("Heartbeat check completed. Waiting for the next check...")
-		// Sleep for 5 seconds before the next heartbeat
-		time.Sleep(5 * time.Second)
-	}
-}
-
-
-
-
-
-
-
-

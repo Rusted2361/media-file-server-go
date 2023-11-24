@@ -1,0 +1,10 @@
+{Data: {__v: 0 _id: AccessKey:Mvytt2GaHy3IjDAQyxZ1Amy67L8nClEE AccessType:share AccessUserEmail:talhakayani12@invozone.com AccessUserId:646629ecc612f2bd80830fc1 BucketId: 6530c756107f1523876dc631 CreatedAt: 2023-11-22T14: 45: 44.123Z Data:dba310cf7cc4575ba0f3f195ba540298c490fed26d7ea1444096bb48bf718478b8c9ab72524fed031b745a351fa74f04 FileId: 655e1414a487505c1073d107 FileMetaData: [
+            {FileAllocations: [] FileName: FileSize: 0 FileType: IV: ObjectType: Salt: SecretKey: SharedStatus: false Status: TokenSalt: UpdatedAt: UserAvatar: UserID: UserName:
+            } {FileAllocations: [] FileName: FileSize: 0 FileType: IV: ObjectType: Salt: SecretKey: SharedStatus: false Status: TokenSalt: UpdatedAt: UserAvatar: UserID: UserName:
+            } {FileAllocations: [] FileName: FileSize: 0 FileType: IV: ObjectType: Salt: SecretKey: SharedStatus: false Status: TokenSalt: UpdatedAt: UserAvatar: UserID: UserName:
+            } {FileAllocations: [] FileName: FileSize: 0 FileType: IV: ObjectType: Salt: SecretKey: SharedStatus: false Status: TokenSalt: UpdatedAt: UserAvatar: UserID: UserName:
+            } {FileAllocations: [] FileName: FileSize: 0 FileType: IV: ObjectType: Salt: SecretKey: SharedStatus: false Status: TokenSalt: UpdatedAt: UserAvatar: UserID: UserName:
+            }
+        ]
+    } Message:Access Token Verified Successfully. Status: 200 Success: true
+}

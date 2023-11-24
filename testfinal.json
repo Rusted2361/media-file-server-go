@@ -1,0 +1,20 @@
+{Data: {__v: 0 _id: AccessKey:Mvytt2GaHy3IjDAQyxZ1Amy67L8nClEE AccessType:share AccessUserEmail:talhakayani12@invozone.com AccessUserId:646629ecc612f2bd80830fc1 BucketId: 6530c756107f1523876dc631 CreatedAt: 2023-11-22T14: 45: 44.123Z Data:dba310cf7cc4575ba0f3f195ba540298c490fed26d7ea1444096bb48bf718478b8c9ab72524fed031b745a351fa74f04 FileId: 655e1414a487505c1073d107 FileMetaData: [
+            {Allocations: [
+                    12D3KooWNsEHBtQ4YNPPkB893hvbt7cRP9kA2xSc5ZFUdMare5vv
+                ] CID:bafybeicqecwu4a7nlfakujdujlxfxo4wkyycqz3zttpvb35b6jo4cngfpi Index: 4 Name:Leave module demo video.mov Size: 7.607768e+06
+            } {Allocations: [
+                    12D3KooWNsEHBtQ4YNPPkB893hvbt7cRP9kA2xSc5ZFUdMare5vv
+                ] CID:bafybeibrj2qbu7urldrtkmhbimx4f4lsjdl2j7iecq3zhqkerughfde4ni Index: 0 Name:Leave module demo video.mov Size: 2.0975592e+07
+            } {Allocations: [
+                    12D3KooWNsEHBtQ4YNPPkB893hvbt7cRP9kA2xSc5ZFUdMare5vv
+                ] CID:bafybeids66ltdobcqs7jjojanlt37hecpizkht3tlbtue4f2gfawa6tr44 Index: 3 Name:Leave module demo video.mov Size: 2.0975592e+07
+            } {Allocations: [
+                    12D3KooWNsEHBtQ4YNPPkB893hvbt7cRP9kA2xSc5ZFUdMare5vv
+                ] CID:bafybeic5io6roki4pie73zby6mwn4hpawic6cd34ddf637nohiniop2nee Index: 2 Name:Leave module demo video.mov Size: 2.0975592e+07
+            } {Allocations: [
+                    12D3KooWNsEHBtQ4YNPPkB893hvbt7cRP9kA2xSc5ZFUdMare5vv
+                ] CID:bafybeih3y2lpi7ozwzytwj5szr5uyuon6px4sxgckz6fj2wr36dgvkr2y4 Index: 1 Name:Leave module demo video.mov Size: 2.0975592e+07
+            }
+        ] FileName:Leave module demo video.mov FileSize: 9.1492325e+07 FileType:video/quicktime IV:822eJ7UQ5VViYNU0YOOoHWgj8hsJiDlr ObjectType:file Salt:dc0a5f3776de94a41b730590543e79365618140f330eee67c30ab9c45a4e9a98 SecretKey:CKj76SltPQXvCcSQkHRWH1puOAdFZsXJ SharedStatus: true Status:active TokenSalt: 4myoRYJ83z5b2iPJ2wFqloBVuOjyHlfD UpdatedAt: 2023-11-22T14: 45: 44.123Z UserAvatar:bafybeiaudm77octd6m2wsxvm5kdfypdscjvwjecva5ouooqdz3swgtwk2e UserID:646629ecc612f2bd80830fc1 UserName:M Talha Kayani
+    } Message:Access Token Verified Successfully. Status: 200 Success: true
+}
