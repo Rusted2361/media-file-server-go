@@ -43,8 +43,7 @@ func main() {
 	router.GET("/api/file/node/status", getStatus)
 	router.GET("/api/file/view/access-play/:accessKey", playVideo)
 	router.GET("/api/file/view/access-play/:accessKey/:token", playVideo)
-	router.GET("/api/file/view/access/:accessKey/:token", getAccessFile)
-	router.GET("/api/file/download/:accessKey/:token", downloadFile)
+	
 
 	if err := router.Run(":3008"); err != nil {
 		fmt.Println("Failed to start the server:", err)
@@ -124,79 +123,6 @@ func playVideo(c *gin.Context) {
 	// sort.Slice(ipfsMetaData, func(i, j int) bool {
 	// 	return ipfsMetaData[i].Index < ipfsMetaData[j].Index
 	// })
-
-	// path := fmt.Sprintf("videos/%s%s", accessData.AccessKey, accessData.FileName)
-
-	// if _, err := os.Stat(path); os.IsNotExist(err) {
-	// 	writableStream, err := os.Create(path)
-	// 	if err != nil {
-	// 		c.JSON(http.StatusInternalServerError, gin.H{
-	// 			"error": "Failed to create writable stream",
-	// 		})
-	// 		return
-	// 	}
-
-	// 	for _, meta := range ipfsMetaData {
-	// 		fileResponse, err := http.Get(fmt.Sprintf("http://46.101.133.110:8080/api/v0/cat/%s", meta.CID))
-	// 		if err != nil {
-	// 			c.JSON(http.StatusInternalServerError, gin.H{
-	// 				"error": "Failed to fetch file response from IPFS",
-	// 			})
-	// 			return
-	// 		}
-
-	// 		fileBytes, err := io.ReadAll(fileResponse.Body)
-	// 		if err != nil {
-	// 			c.JSON(http.StatusInternalServerError, gin.H{
-	// 				"error": "Failed to read file response body",
-	// 			})
-	// 			return
-	// 		}
-
-	// 		decryptedData := decryptedSecretKeyAndFile(accessData.Data, accessData.SecretKey, accessData.AccessKey, accessData.IV, fileBytes, accessData.Salt)
-
-	// 		_, err = writableStream.Write(decryptedData)
-	// 		if err != nil {
-	// 			c.JSON(http.StatusInternalServerError, gin.H{
-	// 				"error": "Failed to write decrypted data to the writable stream",
-	// 			})
-	// 			return
-	// 		}
-	// 	}
-
-	// 	writableStream.Close()
-
-	// 	stat, err := os.Stat(path)
-	// 	if err != nil {
-	// 		c.JSON(http.StatusInternalServerError, gin.H{
-	// 			"error": "Failed to get file statistics",
-	// 		})
-	// 		return
-	// 	}
-
-	// 	fileSize := stat.Size()
-	// 	rangeHeader := c.GetHeader("Range")
-
-	// 	if rangeHeader != "" {
-	// 		handleByteRange(c, path, fileSize)
-	// 	} else {
-	// 		handleFullContent(c, path, fileSize)
-	// 	}
-	// } else {
-	// 	handleExistingFile(c, path)
-	// }
-}
-
-func getAccessFile(c *gin.Context) {
-	// Implement the logic for the getAccessFile function
-	// ...
-	c.String(http.StatusOK, "File content")
-}
-
-func downloadFile(c *gin.Context) {
-	// Implement the logic for the downloadFile function
-	// ...
-	c.String(http.StatusOK, "File content for download")
 }
 
 /////////////////////Helper Functions are defined here////////////////
@@ -361,68 +287,6 @@ func decryptedSecretKeyAndFile(data, secretKey, accessKey, iv []byte, fileRespon
 	return responseData, nil
     //return &response, nil
 }
-
-// func getAccessDataResponse(accessKey, token string) AccessDataResponse {
-// 	// Replace with your logic to get access data from token verification
-// 	return AccessDataResponse{}
-// }
-
-// func handleByteRange(c *gin.Context, path string, fileSize int64) {
-// 	rangeHeader := c.GetHeader("Range")
-// 	parts := strings.Split(strings.ReplaceAll(rangeHeader, "bytes=", ""), "-")
-// 	start, _ := strconv.ParseInt(parts[0], 10, 64)
-// 	end, _ := strconv.ParseInt(parts[1], 10, 64)
-// 	chunkSize := end - start + 1
-
-// 	file, err := os.Open(path)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{
-// 			"error": "Failed to open file",
-// 		})
-// 		return
-// 	}
-// 	defer file.Close()
-
-// 	c.Writer.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", start, end, fileSize))
-// 	c.Writer.Header().Set("Accept-Ranges", "bytes")
-// 	c.Writer.Header().Set("Content-Length", fmt.Sprintf("%d", chunkSize))
-// 	c.Writer.Header().Set("Content-Type", "video/mp4")
-// 	c.Writer.WriteHeader(http.StatusPartialContent)
-
-// 	_, err = file.Seek(start, io.SeekStart)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{
-// 			"error": "Failed to seek file",
-// 		})
-// 		return
-// 	}
-
-// 	io.CopyN(c.Writer, file, chunkSize)
-// }
-
-// func handleFullContent(c *gin.Context, path string, fileSize int64) {
-// 	c.Writer.Header().Set("Content-Length", fmt.Sprintf("%d", fileSize))
-// 	c.Writer.Header().Set("Content-Type", "video/mp4")
-// 	c.Writer.WriteHeader(http.StatusOK)
-
-// 	file, err := os.Open(path)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{
-// 			"error": "Failed to open file",
-// 		})
-// 		return
-// 	}
-// 	defer file.Close()
-
-// 	io.Copy(c.Writer, file)
-// }
-
-// func handleExistingFile(c *gin.Context, path string) {
-// 	// Functionality for streaming and response of an existing file
-// }
-
-
-
 
 
 ////////////////////////////Recursive functions///////////////////////
