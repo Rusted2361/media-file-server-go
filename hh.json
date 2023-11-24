@@ -1,0 +1,19 @@
+[data:map[__v: 0 _id: 655f482ca487505c1073dac5 accessKey:QYZbh7acHKrBMmEfqHGe9mjIBxyqTlMR accessType:share bucketId: 6530c756107f1523876dc631 createdAt: 2023-11-23T12: 40: 12.377Z data: 8baf2953d3bd03bd380e9bedb9a73b5ef88f767fe3623b9af3fbc4ebf63d7e18082edaaa56179b3020f4432d144d552b fileId: 655e1414a487505c1073d107 fileMetaData: [map[allocations: [
+                    12D3KooWNsEHBtQ4YNPPkB893hvbt7cRP9kA2xSc5ZFUdMare5vv
+                ] cid:bafybeicqecwu4a7nlfakujdujlxfxo4wkyycqz3zttpvb35b6jo4cngfpi index: 4 name:Leave module demo video.mov size: 7.607768e+06
+            ] map[allocations: [
+                    12D3KooWNsEHBtQ4YNPPkB893hvbt7cRP9kA2xSc5ZFUdMare5vv
+                ] cid:bafybeibrj2qbu7urldrtkmhbimx4f4lsjdl2j7iecq3zhqkerughfde4ni index: 0 name:Leave module demo video.mov size: 2.0975592e+07
+            ] map[allocations: [
+                    12D3KooWNsEHBtQ4YNPPkB893hvbt7cRP9kA2xSc5ZFUdMare5vv
+                ] cid:bafybeids66ltdobcqs7jjojanlt37hecpizkht3tlbtue4f2gfawa6tr44 index: 3 name:Leave module demo video.mov size: 2.0975592e+07
+            ] map[allocations: [
+                    12D3KooWNsEHBtQ4YNPPkB893hvbt7cRP9kA2xSc5ZFUdMare5vv
+                ] cid:bafybeic5io6roki4pie73zby6mwn4hpawic6cd34ddf637nohiniop2nee index: 2 name:Leave module demo video.mov size: 2.0975592e+07
+            ] map[allocations: [
+                    12D3KooWNsEHBtQ4YNPPkB893hvbt7cRP9kA2xSc5ZFUdMare5vv
+                ] cid:bafybeih3y2lpi7ozwzytwj5szr5uyuon6px4sxgckz6fj2wr36dgvkr2y4 index: 1 name:Leave module demo video.mov size: 2.0975592e+07
+            ]
+        ] fileName:Leave module demo video.mov fileSize: 9.1492325e+07 fileType:video/quicktime iv:822eJ7UQ5VViYNU0YOOoHWgj8hsJiDlr objectType:file salt:dc0a5f3776de94a41b730590543e79365618140f330eee67c30ab9c45a4e9a98 secretKey:XGhqsixfK1IYCBuPuQRgFDp1q9r9TIMR sharedStatus: true status:active tokenSalt:OPJs6iV9n076JKiMseRo1JILIoqDfksy updatedAt: 2023-11-23T12: 40: 12.377Z userAvatar:bafybeiaudm77octd6m2wsxvm5kdfypdscjvwjecva5ouooqdz3swgtwk2e userId:646629ecc612f2bd80830fc1 userName:M Talha Kayani
+    ] message:Access Token Verified Successfully. status: 200 success: true
+]
