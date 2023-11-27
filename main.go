@@ -114,7 +114,6 @@ func getStatus(c *gin.Context) {
 }
 
 func playVideo(c *gin.Context) {
-
 	// Extract access key and token from URL parameters
 	accessKey := c.Param("accessKey")
 	token := c.Param("token")
@@ -125,27 +124,9 @@ func playVideo(c *gin.Context) {
 		fmt.Println("Error:", err)
 		return
 	} else {
-		fmt.Println("AccessDataResponse value:", AccessDataResponse)
+		//fmt.Println("AccessDataResponse value:", AccessDataResponse)
 	}
-
-	// Convert the map to JSON
-	jsonData, err := json.Marshal(AccessDataResponse)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-
-	// Unmarshal the JSON data into the struct
-	var response Response
-	err = json.Unmarshal(jsonData, &response)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-
-	// Now 'response' should contain your structured data
-	fmt.Printf("%+v\n", response)
-
+	fmt.Printf("%+v\n AccessDataResponse", AccessDataResponse)
 }
 
 
@@ -271,8 +252,7 @@ func decryptedSecretKeyAndFile(data, secretKey, accessKey, iv []byte, fileRespon
 	// Replace with your decryption logic
 	return fileResponse
 }
-//func verifyAccessToken(accessKey, token string) (*AccessDataResponse, error){
-func verifyAccessToken(accessKey, token string) (map[string]interface{}, error) {
+func verifyAccessToken(accessKey, token string) (*Response, error){
 	// Define the request payload
 	requestData := map[string]string{"accessKey": accessKey, "token": token}
 	requestBody, err := json.Marshal(requestData)
@@ -296,18 +276,12 @@ func verifyAccessToken(accessKey, token string) (map[string]interface{}, error) 
 	if err != nil {
 		return nil, err
 	}
-
-	// Parse the JSON response
-	var responseData map[string]interface{}
-	err = json.Unmarshal(responseBody, &responseData)
-	if err != nil {
-		return nil, err
-	}
-	// var response AccessDataResponse
-    // if err := json.Unmarshal(responseBody, &response); err != nil {
-    //     return nil, err
-    // }
-
-	return responseData, nil
-    //return &response, nil
+	// Parse the JSON response to struct
+	var response Response
+    if err := json.Unmarshal(responseBody, &response); err != nil {
+        return nil, err
+    }
+	fmt.Printf("%+v\n response", response)
+	//return responseData, nil
+    return &response, nil
 }
