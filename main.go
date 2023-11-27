@@ -35,8 +35,8 @@ type FileMetaData struct {
 }
 
 type AccessData struct {
-	__v             int    `json:"__v"`
-	_id            string`json:"_id"`
+	V             int    `json:"__v"`
+	ID            string `json:"_id"`
 	AccessKey      string `json:"accessKey"`
 	AccessType     string `json:"accessType"`
 	AccessUserEmail string `json:"accessUserEmail"`
@@ -244,7 +244,8 @@ func decryptedSecretKeyAndFile(data, secretKey, accessKey, iv []byte, fileRespon
 	// Replace with your decryption logic
 	return fileResponse
 }
-func verifyAccessToken(accessKey, token string) (*Response, error){
+func verifyAccessToken(accessKey, token string) (map[string]interface{}, error) {
+//func verifyAccessToken(accessKey, token string) (*Response, error){
 	// Define the request payload
 	requestData := map[string]string{"accessKey": accessKey, "token": token}
 	requestBody, err := json.Marshal(requestData)
@@ -268,12 +269,20 @@ func verifyAccessToken(accessKey, token string) (*Response, error){
 	if err != nil {
 		return nil, err
 	}
-	// Parse the JSON response to struct
-	var response Response
-    if err := json.Unmarshal(responseBody, &response); err != nil {
-        return nil, err
-    }
-	//fmt.Printf("%+v\n response", response)
-	//return responseData, nil
-    return &response, nil
+	// Parse the JSON response to Map
+	var responseData map[string]interface{}
+	err = json.Unmarshal(responseBody, &responseData)
+	if err != nil {
+		return nil, err
+	}
+
+	return responseData, nil
+
+	// // Parse the JSON response to struct
+	// var response Response
+    // if err := json.Unmarshal(responseBody, &response); err != nil {
+    //     return nil, err
+    // }
+	// //fmt.Printf("%+v\n response", response)
+    // return &response, nil
 }
