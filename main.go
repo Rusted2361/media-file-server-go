@@ -35,7 +35,7 @@ type FileMetaData struct {
 }
 
 type AccessData struct {
-	V             int    `json:"__v"`
+	__v             int    `json:"__v"`
 	ID            string `json:"_id"`
 	AccessKey      string `json:"accessKey"`
 	AccessType     string `json:"accessType"`
