@@ -117,9 +117,8 @@ func playVideo(c *gin.Context) {
 		fmt.Println("Error:", err)
 		return
 	} else {
-		//fmt.Println("AccessDataResponse value:", AccessDataResponse)
+		fmt.Printf("%+v\n AccessDataResponse value:", AccessDataResponse)
 	}
-	fmt.Printf("%+v\n AccessDataResponse", AccessDataResponse)
 }
 
 
@@ -274,7 +273,7 @@ func verifyAccessToken(accessKey, token string) (*Response, error){
     if err := json.Unmarshal(responseBody, &response); err != nil {
         return nil, err
     }
-	fmt.Printf("%+v\n response", response)
+	//fmt.Printf("%+v\n response", response)
 	//return responseData, nil
     return &response, nil
 }
