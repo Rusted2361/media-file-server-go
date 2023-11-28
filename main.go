@@ -124,16 +124,16 @@ func playVideo(c *gin.Context) {
     // Print the sorted ipfsMetaData
     fmt.Println("Sorted ipfsMetaData:", ipfsMetaData)
 	// Access accessKey property
-	// accessKey, ok := accessData["accessKey"].(string)
-	// if !ok {
-	// 	// Handle the case where "accessKey" key is not present or has an unexpected type
-	// 	fmt.Println("Error: 'accessKey' key not found or has an unexpected type")
-	// 	return
-	// } else {
-	// 	fmt.Println("accessKey:", accessKey)
-	// }
+	RespAccessKey, ok := accessData["accessKey"].(string)
+	if !ok {
+		// Handle the case where "accessKey" key is not present or has an unexpected type
+		fmt.Println("Error: 'accessKey' key not found or has an unexpected type")
+		return
+	} else {
+		fmt.Println("accessKey:", RespAccessKey)
+	}
 
-	// Access fileName property
+	//Access fileName property
 	fileName, ok := accessData["fileName"].(string)
 	if !ok {
 		// Handle the case where "fileName" key is not present or has an unexpected type
@@ -144,67 +144,9 @@ func playVideo(c *gin.Context) {
 	}
 
 	// Concatenate strings to form the path
-	path := "videos/" + accessKey + fileName
+	path := "videos/" + RespAccessKey + fileName
 	fmt.Println("path:", path)
 
-	// if _, err := os.Stat(path); os.IsNotExist(err) {
-	// 	writableStream, err := os.Create(path)
-	// 	if err != nil {
-	// 		c.JSON(http.StatusInternalServerError, gin.H{
-	// 			"error": "Failed to create writable stream",
-	// 		})
-	// 		return
-	// 	}
-
-	// 	for _, meta := range ipfsMetaData {
-	// 		fileResponse, err := http.Get(fmt.Sprintf("http://46.101.133.110:8080/api/v0/cat/%s", meta.CID))
-	// 		if err != nil {
-	// 			c.JSON(http.StatusInternalServerError, gin.H{
-	// 				"error": "Failed to fetch file response from IPFS",
-	// 			})
-	// 			return
-	// 		}
-
-	// 		fileBytes, err := io.ReadAll(fileResponse.Body)
-	// 		if err != nil {
-	// 			c.JSON(http.StatusInternalServerError, gin.H{
-	// 				"error": "Failed to read file response body",
-	// 			})
-	// 			return
-	// 		}
-
-	// 		decryptedData := decryptedSecretKeyAndFile(accessData.Data, accessData.SecretKey, accessData.AccessKey, accessData.IV, fileBytes, accessData.Salt)
-
-	// 		_, err = writableStream.Write(decryptedData)
-	// 		if err != nil {
-	// 			c.JSON(http.StatusInternalServerError, gin.H{
-	// 				"error": "Failed to write decrypted data to the writable stream",
-	// 			})
-	// 			return
-	// 		}
-	// 	}
-
-	// 	writableStream.Close()
-
-	// 	stat, err := os.Stat(path)
-	// 	if err != nil {
-	// 		c.JSON(http.StatusInternalServerError, gin.H{
-	// 			"error": "Failed to get file statistics",
-	// 		})
-	// 		return
-	// 	}
-
-	// 	fileSize := stat.Size()
-	// 	rangeHeader := c.GetHeader("Range")
-
-	// 	if rangeHeader != "" {
-	// 		handleByteRange(c, path, fileSize)
-	// 	} else {
-	// 		handleFullContent(c, path, fileSize)
-	// 	}
-	// } else {
-	// 	handleExistingFile(c, path)
-	// }
 }
 
 func getAccessFile(c *gin.Context) {
@@ -342,40 +284,47 @@ func decryptedSecretKeyAndFile(data, secretKey, accessKey, iv []byte, fileRespon
 	return fileResponse
 }
 
+//func verifyAccessToken(accessKey, token string) (*AccessDataResponse, error){
 func verifyAccessToken(accessKey, token string) (map[string]interface{}, error) {
-	// Define the request payload
-	requestData := map[string]string{"accessKey": accessKey, "token": token}
-	requestBody, err := json.Marshal(requestData)
-	if err != nil {
-		return nil, err
-	}
-
-	// Make the HTTP POST request
-	resp, err := http.Post(
-		"http://your-api-server/file/access/verify-token",
-		"application/json",
-		bytes.NewBuffer(requestBody),
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	// Read the response body
-	responseBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	// Parse the JSON response
-	var responseData map[string]interface{}
-	err = json.Unmarshal(responseBody, &responseData)
-	if err != nil {
-		return nil, err
-	}
-
-	return responseData, nil
+			// Define the request payload
+			requestData := map[string]string{"accessKey": accessKey, "token": token}
+			requestBody, err := json.Marshal(requestData)
+			if err != nil {
+				return nil, err
+			}
+		
+			// Send a request to verify the access token
+			resp, err := http.Post(
+				"https://storagechain-be.invo.zone/api/file/access/verify-token",
+				"application/json",
+				bytes.NewBuffer(requestBody),
+			)
+			if err != nil {
+				return nil, err
+			}
+			defer resp.Body.Close()
+		
+			// Read the response body
+			responseBody, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+		
+			// Parse the JSON response
+			var responseData map[string]interface{}
+			err = json.Unmarshal(responseBody, &responseData)
+			if err != nil {
+				return nil, err
+			}
+			// var response AccessDataResponse
+			// if err := json.Unmarshal(responseBody, &response); err != nil {
+			//     return nil, err
+			// }
+		
+			return responseData, nil
+			//return &response, nil
 }
+		
 
 func handleByteRange(c *gin.Context, path string, fileSize int64) {
 	rangeHeader := c.GetHeader("Range")
