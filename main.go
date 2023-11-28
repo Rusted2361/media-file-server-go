@@ -34,6 +34,7 @@ func main() {
 	router := gin.Default()
 
 	router.GET("/api/file/node/status", getStatus)
+	router.GET("/api/file/view/access-play/:accessKey", playVideo)
 	router.GET("/api/file/view/access-play/:accessKey/:token", playVideo)
 	router.GET("/api/file/view/access/:accessKey/:token", getAccessFile)
 	router.GET("/api/file/download/:accessKey/:token", downloadFile)
@@ -89,77 +90,121 @@ func playVideo(c *gin.Context) {
 	token := c.Param("token")
 
 	// Verify the access token
-	accessData, err := verifyAccessToken(accessKey, token)
+	AccessDataResponse, err := verifyAccessToken(accessKey, token)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
+	//This method uses map interfaces to deal with response data
+    accessData, ok := AccessDataResponse["data"].(map[string]interface{})
+    if ok {
+         fmt.Println("accessData value is accessed")
+     } else {
+         fmt.Println("accessData is not a valid map")
+     }
+    fileMetaDataValue, ok := accessData["fileMetaData"].([]interface{})
+    if ok {
+     fmt.Println("fileMetaDataValue is a valid array")
+    } else {
+     fmt.Println("Data is not a string")
+    }
+    // Custom sorting function
+    sort.Slice(fileMetaDataValue, func(i, j int) bool {
+     indexI, okI := fileMetaDataValue[i].(map[string]interface{})["index"].(float64)
+     indexJ, okJ := fileMetaDataValue[j].(map[string]interface{})["index"].(float64)
+     // Check if type assertions were successful
+     if okI && okJ {
+         return int(indexI) < int(indexJ)
+     }
+     // Handle the case where type assertions failed
+     return false
+    })
+    // Storing sorted data in ipfsMetaData
+    ipfsMetaData := fileMetaDataValue
+    // Print the sorted ipfsMetaData
+    fmt.Println("Sorted ipfsMetaData:", ipfsMetaData)
+	// Access accessKey property
+	// accessKey, ok := accessData["accessKey"].(string)
+	// if !ok {
+	// 	// Handle the case where "accessKey" key is not present or has an unexpected type
+	// 	fmt.Println("Error: 'accessKey' key not found or has an unexpected type")
+	// 	return
+	// } else {
+	// 	fmt.Println("accessKey:", accessKey)
+	// }
 
-	ipfsMetaData := accessData.FileMetaData
-	sort.Slice(ipfsMetaData, func(i, j int) bool {
-		return ipfsMetaData[i].Index < ipfsMetaData[j].Index
-	})
-
-	path := fmt.Sprintf("videos/%s%s", accessData.AccessKey, accessData.FileName)
-
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		writableStream, err := os.Create(path)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to create writable stream",
-			})
-			return
-		}
-
-		for _, meta := range ipfsMetaData {
-			fileResponse, err := http.Get(fmt.Sprintf("http://46.101.133.110:8080/api/v0/cat/%s", meta.CID))
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": "Failed to fetch file response from IPFS",
-				})
-				return
-			}
-
-			fileBytes, err := io.ReadAll(fileResponse.Body)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": "Failed to read file response body",
-				})
-				return
-			}
-
-			decryptedData := decryptedSecretKeyAndFile(accessData.Data, accessData.SecretKey, accessData.AccessKey, accessData.IV, fileBytes, accessData.Salt)
-
-			_, err = writableStream.Write(decryptedData)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": "Failed to write decrypted data to the writable stream",
-				})
-				return
-			}
-		}
-
-		writableStream.Close()
-
-		stat, err := os.Stat(path)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to get file statistics",
-			})
-			return
-		}
-
-		fileSize := stat.Size()
-		rangeHeader := c.GetHeader("Range")
-
-		if rangeHeader != "" {
-			handleByteRange(c, path, fileSize)
-		} else {
-			handleFullContent(c, path, fileSize)
-		}
+	// Access fileName property
+	fileName, ok := accessData["fileName"].(string)
+	if !ok {
+		// Handle the case where "fileName" key is not present or has an unexpected type
+		fmt.Println("Error: 'fileName' key not found or has an unexpected type")
+		return
 	} else {
-		handleExistingFile(c, path)
+		fmt.Println("fileName:", fileName)
 	}
+
+	// Concatenate strings to form the path
+	path := "videos/" + accessKey + fileName
+	fmt.Println("path:", path)
+
+	// if _, err := os.Stat(path); os.IsNotExist(err) {
+	// 	writableStream, err := os.Create(path)
+	// 	if err != nil {
+	// 		c.JSON(http.StatusInternalServerError, gin.H{
+	// 			"error": "Failed to create writable stream",
+	// 		})
+	// 		return
+	// 	}
+
+	// 	for _, meta := range ipfsMetaData {
+	// 		fileResponse, err := http.Get(fmt.Sprintf("http://46.101.133.110:8080/api/v0/cat/%s", meta.CID))
+	// 		if err != nil {
+	// 			c.JSON(http.StatusInternalServerError, gin.H{
+	// 				"error": "Failed to fetch file response from IPFS",
+	// 			})
+	// 			return
+	// 		}
+
+	// 		fileBytes, err := io.ReadAll(fileResponse.Body)
+	// 		if err != nil {
+	// 			c.JSON(http.StatusInternalServerError, gin.H{
+	// 				"error": "Failed to read file response body",
+	// 			})
+	// 			return
+	// 		}
+
+	// 		decryptedData := decryptedSecretKeyAndFile(accessData.Data, accessData.SecretKey, accessData.AccessKey, accessData.IV, fileBytes, accessData.Salt)
+
+	// 		_, err = writableStream.Write(decryptedData)
+	// 		if err != nil {
+	// 			c.JSON(http.StatusInternalServerError, gin.H{
+	// 				"error": "Failed to write decrypted data to the writable stream",
+	// 			})
+	// 			return
+	// 		}
+	// 	}
+
+	// 	writableStream.Close()
+
+	// 	stat, err := os.Stat(path)
+	// 	if err != nil {
+	// 		c.JSON(http.StatusInternalServerError, gin.H{
+	// 			"error": "Failed to get file statistics",
+	// 		})
+	// 		return
+	// 	}
+
+	// 	fileSize := stat.Size()
+	// 	rangeHeader := c.GetHeader("Range")
+
+	// 	if rangeHeader != "" {
+	// 		handleByteRange(c, path, fileSize)
+	// 	} else {
+	// 		handleFullContent(c, path, fileSize)
+	// 	}
+	// } else {
+	// 	handleExistingFile(c, path)
+	// }
 }
 
 func getAccessFile(c *gin.Context) {
@@ -332,11 +377,6 @@ func verifyAccessToken(accessKey, token string) (map[string]interface{}, error) 
 	return responseData, nil
 }
 
-func getAccessDataResponse(accessKey, token string) AccessDataResponse {
-	// Replace with your logic to get access data from token verification
-	return AccessDataResponse{}
-}
-
 func handleByteRange(c *gin.Context, path string, fileSize int64) {
 	rangeHeader := c.GetHeader("Range")
 	parts := strings.Split(strings.ReplaceAll(rangeHeader, "bytes=", ""), "-")
@@ -397,49 +437,6 @@ func handleExistingFile(c *gin.Context, path string) {
 
 ////////////////////////////Recursive functions///////////////////////
 		//////////////////////////////////////////////////////
-// Function to  update ip address, ipfs cluster id, ipfs id
-func updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId string) {
-	// Create a JSON payload from the provided data
-	payload := NodeDetails{
-		IPAddress:     ipAddress,
-		IPFSClusterID: ipfsClusterId,
-		IPFSID:        ipfsId,
-	}
-
-	// Convert the payload to JSON
-	jsonPayload, err := json.Marshal(payload)
-	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
-		return
-	}
-
-	// Make an HTTP POST request to update node details
-	url := fmt.Sprintf("%s/node/update-node-details", os.Getenv("API_SERVER_URL"))
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonPayload))
-	if err != nil {
-		// Handle the HTTP request error
-		fmt.Println("Error making HTTP request:", err)
-
-		// Retry after 5 seconds
-		time.Sleep(5 * time.Second)
-		updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId)
-		return
-	}
-	defer resp.Body.Close()
-
-	// Check the response status
-	if resp.StatusCode != http.StatusOK {
-		fmt.Println("Error updating node details. Status:", resp.Status)
-
-		// Retry after 5 seconds
-		time.Sleep(5 * time.Second)
-		updateNodeDetailsOnRecursiveCall(ipAddress, ipfsClusterId, ipfsId)
-		return
-	}
-
-	// Log the result of the update operation
-	fmt.Println("Node details updated successfully")
-}
 
 // this will recursively check for clusterid and ipfs id
 func heartBeat() {
