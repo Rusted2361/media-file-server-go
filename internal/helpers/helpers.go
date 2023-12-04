@@ -11,6 +11,12 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"crypto/aes"
+	"crypto/cipher"
+	//"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
+	"golang.org/x/crypto/pbkdf2"
 	"github.com/gin-gonic/gin"
 )
 /////////////////////Helper Functions are defined here////////////////
@@ -164,10 +170,69 @@ func VerifyAccessToken(accessKey, token string) (map[string]interface{}, error) 
 			return responseData, nil
 }
 
-//Function to decrypt data
-func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv []byte, fileResponse []byte, salt string) []byte {
-	// Replace with your decryption logic
-	return fileResponse
+// Function to generate a secret key for encryption using PBKDF2
+func generateSecretKeyForEncryption(secretKeyString string, userSalt string) ([]byte, error) {
+	// Derive the key using PBKDF2 with provided salt and other parameters
+	derivedKey := pbkdf2.Key([]byte(secretKeyString), []byte(userSalt), 1000, 32, sha256.New)
+
+	// Return the derived key
+	return derivedKey, nil
+}
+
+// Function to convert a hex string to a byte slice
+func fromHexString(hexString string) ([]byte, error) {
+	return hex.DecodeString(hexString)
+}
+
+// Function to decrypt data using AES-GCM
+func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, fileData, userSalt string) ([]byte, error) {
+	// Convert hex string to byte slice
+	newDataArray, err := fromHexString(data)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate the secret key for encryption
+	key, err := generateSecretKeyForEncryption(secretKey, userSalt)
+	if err != nil {
+		return nil, err
+	}
+
+	// Decrypt the encryption key using AES-GCM
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+
+	encryptionKey, err := aesGCM.Open(nil, []byte(accessKey), newDataArray, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Import the decrypted encryption key
+	encryptionKeyForFile, err := aes.NewCipher(encryptionKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// Decrypt the file data using the encryption key and IV
+	aesGCMFile, err := cipher.NewGCM(encryptionKeyForFile)
+	if err != nil {
+		return nil, err
+	}
+
+	decryptedData, err := aesGCMFile.Open(nil, []byte(iv), []byte(fileData), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the decrypted data
+	return decryptedData, nil
 }
 
 func HandleByteRange(c *gin.Context, path string, fileSize int64) {
