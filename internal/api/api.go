@@ -5,7 +5,7 @@ import (
 	"sort"
 	"net/http"
 	"io/ioutil"
-	"io"
+	//"io"
     "github.com/gin-gonic/gin"
 	"media-file-server-go/internal/helpers"
 )
@@ -271,6 +271,89 @@ func getAccessFile(c *gin.Context) {
 	c.Writer.Header().Set("Content-Type", fileType)
 	c.Writer.Header().Set("Content-Disposition", fmt.Sprintf(`filename="%s"`, fileName))
 
+	 // Looping through ipfsMetaData and fetching file data
+	 for i := 0; i < len(ipfsMetaData); i++ {
+		// Type-assert ipfsMetaData[i] to a map[string]interface{}
+		metaData, ok := ipfsMetaData[i].(map[string]interface{})
+		if !ok {
+			// Handle the case where type assertion fails
+			fmt.Println("Error: ipfsMetaData is not a valid map")
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Invalid metadata format"})
+			return
+		}
+		// Fetch the "cid" value from the map
+		cid, ok := metaData["cid"].(string)
+		if !ok {
+			// Handle the case where "cid" key is not present or has an unexpected type
+			fmt.Println("Error: 'cid' key not found or has an unexpected type")
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Invalid CID format"})
+			return
+		} else{
+			fmt.Println("cid:",cid)
+		}
+		// Making an HTTP GET request to fetch file data from IPFS
+		url := fmt.Sprintf("http://46.101.133.110:8080/api/v0/cat/%s", cid)
+		// Make an HTTP GET request
+		respone, err := http.Get(url)
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		defer respone.Body.Close()
+		// Read the response body
+		fileRespone, err := ioutil.ReadAll(respone.Body)
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		fmt.Println("fileRespone:", fileRespone)
+		//Access accessData->data property
+		accessData_data, ok := accessData["data"].(string)
+		if !ok {
+			// Handle the case where "data" key is not present or has an unexpected type
+			fmt.Println("Error: 'data' key not found or has an unexpected type")
+			return
+		}else {
+			fmt.Println("accessData_data:", accessData_data)
+		}
+		//Access accessData->secretKey property
+		accessData_secretKey, ok := accessData["secretKey"].(string)
+		if !ok {
+			// Handle the case where "secretKey" key is not present or has an unexpected type
+			fmt.Println("Error: 'secretKey' key not found or has an unexpected type")
+			return
+		}else {
+			fmt.Println("accessData_secretKey:", accessData_secretKey)
+		}
+		//Access accessData->accessKey property
+		accessData_accessKey, ok := accessData["accessKey"].(string)
+		if !ok {
+			// Handle the case where "accessKey" key is not present or has an unexpected type
+			fmt.Println("Error: 'accessKey' key not found or has an unexpected type")
+			return
+		}else {
+			fmt.Println("accessData_accessKey:", accessData_accessKey)
+		}
+		//Access accessData->iv property
+		accessData_iv, ok := accessData["iv"].(string)
+		if !ok {
+			// Handle the case where "iv" key is not present or has an unexpected type
+			fmt.Println("Error: 'iv' key not found or has an unexpected type")
+			return
+		}else {
+			fmt.Println("accessData_iv:", accessData_iv)
+		}
+		//Access accessData->salt property
+		accessData_salt, ok := accessData["salt"].(string)
+		if !ok {
+			// Handle the case where "salt" key is not present or has an unexpected type
+			fmt.Println("Error: 'salt' key not found or has an unexpected type")
+			return
+		}else {
+			fmt.Println("accessData_salt:", accessData_salt)
+		}
+		// Decrypting data using a custom function
+	}
 }
 
 func downloadFile(c *gin.Context) {
