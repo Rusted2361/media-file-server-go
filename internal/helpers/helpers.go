@@ -203,12 +203,15 @@ func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, fileData, userSal
 	if err != nil {
 		return nil, err
 	}
-
+	// Create a new AES-GCM cipher mode using the AES cipher block
 	aesGCM, err := cipher.NewGCM(block)
 	if err != nil {
 		return nil, err
 	}
 
+	// Decrypt the encryption key using AES-GCM
+	// The `nil` slice is passed as the destination for the decrypted key (output)
+	// The nonce (iv) is provided as []byte(accessKey), and the ciphertext is newDataArray
 	encryptionKey, err := aesGCM.Open(nil, []byte(accessKey), newDataArray, nil)
 	if err != nil {
 		return nil, err
@@ -226,6 +229,9 @@ func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, fileData, userSal
 		return nil, err
 	}
 
+	// Decrypt the file data using AES-GCM
+	// The `nil` slice is passed as the destination for the decrypted data (output)
+	// The nonce (iv) is provided as []byte(iv), and the ciphertext is []byte(fileData)
 	decryptedData, err := aesGCMFile.Open(nil, []byte(iv), []byte(fileData), nil)
 	if err != nil {
 		return nil, err
