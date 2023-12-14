@@ -115,6 +115,11 @@ func playVideo(c *gin.Context) {
 	c.Writer.Header().Set("Content-Type", fileType)
 	c.Writer.Header().Set("Content-Disposition", fmt.Sprintf(`filename="%s"`, fileName))
 
+	// Create a pipe
+    pr, pw := io.Pipe()
+	// Start a goroutine to produce data and write to the pipe
+	go func() {
+        defer pw.Close()
     // Looping through ipfsMetaData and fetching file data
     for i := 0; i < len(ipfsMetaData); i++ {
         // Type-assert ipfsMetaData[i] to a map[string]interface{}
@@ -201,6 +206,9 @@ func playVideo(c *gin.Context) {
 		}
 
     }
+	}()
+	// Pipe the reader to the response writer
+    io.Copy(c.Writer, pr)
 
 }
 
@@ -247,7 +255,7 @@ func getAccessFile(c *gin.Context) {
     ipfsMetaData := fileMetaDataValue
 
     // Print the sorted ipfsMetaData
-    fmt.Println("Sorted ipfsMetaData")	
+    fmt.Println("Sorted ipfsMetaData",ipfsMetaData)	
 
 	//Access fileName property
 	fileName, ok := accessData["fileName"].(string)
@@ -311,7 +319,8 @@ func getAccessFile(c *gin.Context) {
                 fmt.Println("Error:", err)
                 return
             }
-            fmt.Println("fileRespone:", fileRespone)
+            fmt.Printf("fileRespone: %x\n", fileRespone)
+		
             //Access accessData->data property
             accessData_data, ok := accessData["data"].(string)
             if !ok {
@@ -358,11 +367,19 @@ func getAccessFile(c *gin.Context) {
                 fmt.Println("accessData_salt:", accessData_salt)
             }
             // Decrypting data using a custom function
+			decryptedData, err := helpers.DecryptedSecretKeyAndFile(accessData_data, accessData_secretKey, accessData_accessKey, accessData_iv, string(fileRespone), accessData_salt)
+			if err != nil {
+				fmt.Println("Error:", err)
+				return
+			} else {
+                fmt.Println("decryptedData:", decryptedData)
+            }
         }
     }()
     // Pipe the reader to the response writer
     io.Copy(c.Writer, pr)
 }
+
 
 func downloadFile(c *gin.Context) {
 	// Implement the logic for the downloadFile function

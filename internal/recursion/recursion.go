@@ -11,11 +11,11 @@ import (
 		//////////////////////////////////////////////////////
 
 // this will recursively check for clusterid and ipfs id
-func heartBeat() {
+func HeartBeat() {
 	for {
 		// Check the local IPFS Cluster and IPFS node status
-		clusterResponseLocal, _ := getClusterID()
-		ipfsResponseLocal, _ := getIpfsId()
+		clusterResponseLocal, _ := helpers.GetClusterID()
+		ipfsResponseLocal, _ := helpers.GetIpfsId()
 
 		// If either local IPFS Cluster or IPFS node is not running, exit the application
 		if len(clusterResponseLocal) == 0 || len(ipfsResponseLocal) == 0 {
@@ -27,8 +27,8 @@ func heartBeat() {
 
 
 		// Check the global (online) IPFS Cluster and IPFS node status
-		clusterResponseOnline, _ := getClusterID()
-		ipfsResponseLocalOnline, _ := getIpfsId()
+		clusterResponseOnline, _ := helpers.GetClusterID()
+		ipfsResponseLocalOnline, _ := helpers.GetIpfsId()
 
 		// If either global IPFS Cluster or IPFS node is not running, exit the application
 		if len(clusterResponseOnline) == 0 || len(ipfsResponseLocalOnline) == 0 {

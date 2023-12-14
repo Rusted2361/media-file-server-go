@@ -185,38 +185,49 @@ func fromHexString(hexString string) ([]byte, error) {
 }
 
 // Function to decrypt data using AES-GCM
-func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, fileData, userSalt string) ([]byte, error) {
+func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, fileData , userSalt string) ([]byte, error) {
 	// Convert hex string to byte slice
 	newDataArray, err := fromHexString(data)
 	if err != nil {
 		return nil, err
+	}else{
+		fmt.Println("newDataArray:", newDataArray)
 	}
 
 	// Generate the secret key for encryption
 	key, err := generateSecretKeyForEncryption(secretKey, userSalt)
 	if err != nil {
 		return nil, err
+	}else{
+		fmt.Println("key:", key)
 	}
 
 	// Decrypt the encryption key using AES-GCM
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
+	}else{
+		fmt.Println("block:", block)
 	}
 	// Create a new AES-GCM cipher mode using the AES cipher block
 	aesGCM, err := cipher.NewGCM(block)
 	if err != nil {
 		return nil, err
+	}else{
+		fmt.Println("aesGCM:", aesGCM)
 	}
-
+	// Trim or hash the accessKey to make it 12 bytes
+	trimmedAccessKey := []byte(accessKey)[:12]
+	
 	// Decrypt the encryption key using AES-GCM
 	// The `nil` slice is passed as the destination for the decrypted key (output)
 	// The nonce (iv) is provided as []byte(accessKey), and the ciphertext is newDataArray
-	encryptionKey, err := aesGCM.Open(nil, []byte(accessKey), newDataArray, nil)
+	encryptionKey, err := aesGCM.Open(nil, trimmedAccessKey, newDataArray, nil)
 	if err != nil {
 		return nil, err
+	}else{
+		fmt.Println("encryptionKey:", encryptionKey)
 	}
-
 	// Import the decrypted encryption key
 	encryptionKeyForFile, err := aes.NewCipher(encryptionKey)
 	if err != nil {

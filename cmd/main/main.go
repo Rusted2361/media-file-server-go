@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	// "time"
+	 //"time"
 	"github.com/gin-gonic/gin"
 	"media-file-server-go/internal/api"
-	// "media-file-server-go/internal/recursion"
+	 //"media-file-server-go/internal/recursion"
 	
 )
 
@@ -15,7 +15,7 @@ func main() {
 
 	//////uncomment this function to immediately shut service if cluster id not found
 	// Create a new Goroutine for the heartBeat function
-	//go heartBeat()
+	//go recursion.HeartBeat()
 
 	router := gin.Default()
 
@@ -43,5 +43,3 @@ func main() {
 
 	// // Block the main Goroutine so that the program doesn't exit
 	// select {}
-	
-}
