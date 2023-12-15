@@ -41,7 +41,7 @@ func HeartBeat() {
 		clusterResponseLocal, _ := helpers.GetClusterID()
 		ipfsResponseLocal, _ := helpers.GetIpfsId()
 
-		// If either local IPFS Cluster or IPFS node is not running, exit the application
+		// If either local IPFS Cluster and IPFS node is not running, exit the application
 		if len(clusterResponseLocal) == 0 && len(ipfsResponseLocal) == 0 {
 			fmt.Println("Ipfs Cluster or Ipfs is not running locally.")
 			//exit
@@ -49,12 +49,16 @@ func HeartBeat() {
 
 		}
 
-
+		ipaddress, err := helpers.GetIPAddress()
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return
+		}
 		// Check the global (online) IPFS Cluster and IPFS node status
-		clusterResponseOnline, _ := helpers.GetClusterID()
-		ipfsResponseLocalOnline, _ := helpers.GetIpfsId()
+		clusterResponseOnline, _ := helpers.GetClusterID(ipaddress)
+		ipfsResponseLocalOnline, _ := helpers.GetIpfsId(ipaddress)
 
-		// If either global IPFS Cluster or IPFS node is not running, exit the application
+		// If either global IPFS Cluster and IPFS node is not running, exit the application
 		if len(clusterResponseOnline) == 0 && len(ipfsResponseLocalOnline) == 0 {
 			fmt.Println("Ipfs Cluster or Ipfs is not running globally.")
 			//exit
