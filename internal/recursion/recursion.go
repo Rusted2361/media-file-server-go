@@ -12,7 +12,26 @@ import (
 )
 ////////////////////////////Recursive functions///////////////////////
 		//////////////////////////////////////////////////////
+/////Data Structures//////
+type NodeDetailsResponse struct {
+	Success bool `json:"success"`
+	Message string `json:"message"`
+	Data    struct {
+		IPFSID        string `json:"ipfsId"`
+		IPFSClusterID string `json:"ipfsClusterId"`
+		IPAddress     string `json:"ipAddress"`
+	} `json:"data"`
+	Status int `json:"status"`
+}
+type UpdateNodeDetailsRequest struct {
+	IPAddress      string `json:"ipAddress"`
+	IPFSClusterID  string `json:"ipfsClusterId"`
+	IPFSID         string `json:"ipfsId"`
+}
+/////Constants//////
+const maxRetries = 3;
 const hostURL = "https://storagechain-be.invo.zone/api";
+
 // this will recursively check for clusterid and ipfs id
 func HeartBeat() {
 	for {
