@@ -20,27 +20,10 @@ func main() {
 	go recursion.SaveNodeOsDetails(0)
 
 	router := gin.Default()
-
 	// Register API routes
     api.RegisterRoutes(router)
 	//comment this one once you uncomment below recursion
 	if err := router.Run(":3009"); err != nil {
 		fmt.Println("Failed to start the server:", err)
 	}
-
-	//Run the Gin server on port 3009 in a Goroutine
-	// go func() {
-	// 	if err := router.Run(":3009"); err != nil {
-	// 		fmt.Println("Failed to start the server:", err)
-	// 	}
-	// }()
-
-	// // Wait for 5 seconds
-	// <-time.After(5 * time.Second)
-
-	// // Start the heartBeat function after 5 seconds
-	// go recursion.HeartBeat()
-
-	// // Block the main Goroutine so that the program doesn't exit
-	// select {}
 }

@@ -31,7 +31,7 @@ type UpdateNodeDetailsRequest struct {
 }
 /////Constants//////
 const retryDelay = 5 * time.Second;
-const maxRetries = 3;
+const maxRetries = 5;
 const hostURL = "https://storagechain-be.invo.zone/api";
 
 // this will recursively check for clusterid and ipfs id
