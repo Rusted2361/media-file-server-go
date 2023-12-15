@@ -69,7 +69,7 @@ func HeartBeat() {
 		// Display a message in the terminal
 		log.Print("Heartbeat check completed. Waiting for the next check...")
 		// Sleep for 5 seconds before the next heartbeat
-		time.Sleep(5 * time.Second)
+		time.Sleep(15 * time.Second)
 	}
 }
 
