@@ -62,7 +62,7 @@ func GetIPAddress() (string, error) {
 func GetIpfsId(ipAddress ...string) (string, error) {
 	// Construct the URL for the IPFS node's /api/v0/id endpoint
 	var url string
-
+	payload := []byte("")
 	if len(ipAddress) > 0 {
 		url = fmt.Sprintf("http://%s:5001/api/v0/id", ipAddress)
 		
@@ -72,7 +72,7 @@ func GetIpfsId(ipAddress ...string) (string, error) {
 	}
 
 	// Make an HTTP GET request to the IPFS node
-	response, err := http.Get(url)
+	response, err := http.Post(url, "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		// Return an empty string and the error if the request fails
 		return "", err
