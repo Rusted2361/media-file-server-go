@@ -17,16 +17,20 @@ func main() {
 	//////uncomment this function to immediately shut service if cluster id not found
 	// Create a new Goroutine for the heartBeat function
 	
+	// Start SaveNodeOsDetails immediately
 	go recursion.SaveNodeOsDetails(0)
-	// Introduce a 5-second delay before starting the HeartBeat function
-	time.Sleep(10 * time.Second)
-	go recursion.HeartBeat()
 
 	router := gin.Default()
 	// Register API routes
-    api.RegisterRoutes(router)
+	api.RegisterRoutes(router)
+
+	// Delay for 10 seconds before starting HeartBeat
+	time.Sleep(10 * time.Second)
+	go recursion.HeartBeat()
+	
 	//comment this one once you uncomment below recursion
 	if err := router.Run(":3009"); err != nil {
 		fmt.Println("Failed to start the server:", err)
 	}
+
 }
