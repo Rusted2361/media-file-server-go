@@ -91,22 +91,7 @@ func SaveNodeOsDetails(retries int) {
 		retry()
 	}
 	fmt.Println("IP Address:", ipAddress)
-
-	nodeDetailsResponse, err := GetNodeDetails(ipAddress)
-	if err != nil {
-		fmt.Println("Error getting node details:", err)
-		retry()
-		return
-	}
-	fmt.Println("Node Details Response:", nodeDetailsResponse)
-
-	if nodeDetailsResponse.Data.IPFSClusterID != "" {
-		fmt.Println("Node details are already updated")
-		// Return success message or handle as needed
-		return
-	}
-	fmt.Println("nodeDetailsResponse.Data.IPFSClusterID:", nodeDetailsResponse.Data.IPFSClusterID)
-
+	
 	ipfsID, err := helpers.GetIpfsId()
 	if err != nil {
 		fmt.Println("Error getting IPFS ID:", err)
@@ -122,6 +107,21 @@ func SaveNodeOsDetails(retries int) {
 		return
 	}
 	fmt.Println("IPFS Cluster ID:", ipfsClusterID)
+
+	nodeDetailsResponse, err := GetNodeDetails(ipAddress)
+	if err != nil {
+		fmt.Println("Error getting node details:", err)
+		retry()
+		return
+	}
+	fmt.Println("Node Details Response:", nodeDetailsResponse)
+
+	if nodeDetailsResponse.Data.IPFSClusterID != "" {
+		fmt.Println("Node details are already updated")
+		// Return success message or handle as needed
+		return
+	}
+	fmt.Println("nodeDetailsResponse.Data.IPFSClusterID:", nodeDetailsResponse.Data.IPFSClusterID)
 
 	if ipfsClusterID == "" || ipfsID == "" {
 		fmt.Println("IPFS ID or IPFS Cluster ID not found. Retrying...")
