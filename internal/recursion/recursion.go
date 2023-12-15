@@ -3,13 +3,16 @@ package recursion
 import (
     "fmt"
 	"time"
+	"encoding/json"
+	"net/http"
+	"bytes"
 	"os"
 	"log"
 	"media-file-server-go/internal/helpers"
 )
 ////////////////////////////Recursive functions///////////////////////
 		//////////////////////////////////////////////////////
-
+const hostURL = "https://storagechain-be.invo.zone/api";
 // this will recursively check for clusterid and ipfs id
 func HeartBeat() {
 	for {

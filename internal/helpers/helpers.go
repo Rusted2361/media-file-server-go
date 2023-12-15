@@ -3,7 +3,7 @@ package helpers
 import (
 	"bytes"
 	"encoding/json"
-	"net"
+	//"net"
 	"fmt"
 	"os"
 	"io"
@@ -19,55 +19,87 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 	"github.com/gin-gonic/gin"
 )
+
+type IpfsID struct {
+    Id string
+}
+
+type ClusterID struct {
+    Id string
+}
+
 /////////////////////Helper Functions are defined here////////////////
 		//////////////////////////////////////////////////////
-//get ipaddress array
-func GetIPAddress() ([]string, error) {
-	// Retrieve network interfaces
-	interfaces, err := net.Interfaces()
+//get ip address
+func GetIPAddress() (string, error) {
+	req, err := http.Get("https://httpbin.org/ip")
 	if err != nil {
-		return nil, err
+		return "", err
+	}
+	defer req.Body.Close()
+
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return "", err
 	}
 
-	// Array to store IP addresses
-	addresses := []string{}
-
-	// Loop through each network interface
-	for _, iface := range interfaces {
-		// Interface should not be a loopback and should be up
-		if iface.Flags&net.FlagLoopback == 0 && iface.Flags&net.FlagUp != 0 {
-			// Interface addresses
-			addrs, err := iface.Addrs()
-			if err != nil {
-				return nil, err
-			}
-
-			// Loop through each address in the interface
-			for _, addr := range addrs {
-				// Convert network address to IP
-				ip, _, err := net.ParseCIDR(addr.String())
-				if err != nil {
-					return nil, err
-				}
-
-				// Check if the address is IPv4
-				if ip.To4() != nil {
-					addresses = append(addresses, ip.String())
-				}
-			}
-		}
+	// Parse the JSON response
+	var result map[string]interface{}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return "", err
 	}
 
-	return addresses, nil
+	// Extract the IP address
+	ipAddress, ok := result["origin"].(string)
+	if !ok {
+		return "", fmt.Errorf("Unable to extract IP address from the response")
+	}
+
+	return ipAddress, nil
 }
+
 // getIpfsId fetches ID from an IPFS node based on the given IP address.
 func GetIpfsId(ipAddress ...string) (string, error) {
 	// Construct the URL for the IPFS node's /api/v0/id endpoint
 	var url string
 
 	if len(ipAddress) > 0 {
-		url = fmt.Sprintf("http://%s:9094/id", ipAddress[0])
+		url = fmt.Sprintf("http://%s:5001/api/v0/id", ipAddress)
+		
 	} else {
+		url = "http://localhost:5001/api/v0/id"
+		//url = "http://135.181.55.235:5001/api/v0/id"
+	}
+
+	// Make an HTTP GET request to the IPFS node
+	response, err := http.Get(url)
+	if err != nil {
+		// Return an empty string and the error if the request fails
+		return "", err
+	}
+	defer response.Body.Close()
+
+	// Read the response body
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		// Return an empty string and the error if reading the body fails
+		return "", err
+	}
+	var ipfsid IpfsID
+    json.Unmarshal(body, &ipfsid)
+	// Convert the response body to a string and return it
+	return ipfsid.Id, nil
+}
+
+// Function to get ID from an IPFS cluster based on the environment
+func GetClusterID(ipAddress ...string) (string, error) {
+
+	var url string
+
+	if len(ipAddress) > 0 {
+		url = fmt.Sprintf("http://%s:9094/id", ipAddress)
+	} else {
+		//url = "http://135.181.55.235:9084/id"
 		url = "http://localhost:9094/id"
 	}
 
@@ -85,53 +117,10 @@ func GetIpfsId(ipAddress ...string) (string, error) {
 		// Return an empty string and the error if reading the body fails
 		return "", err
 	}
-
+	var clusterid ClusterID
+    json.Unmarshal(body, &clusterid)
 	// Convert the response body to a string and return it
-	return string(body), nil
-}
-
-// Function to get ID from an IPFS cluster based on the environment
-func GetClusterID(ipAddress ...string) ([]byte, error) {
-	
-	// if ipAddress == "" {
-	// 	ipAddress = "localhost"
-	// }
-	// // Construct the URL
-	// url := fmt.Sprintf("http://%s:9094/id", ipAddress)
-
-	var url string
-
-	if len(ipAddress) > 0 {
-		url = fmt.Sprintf("http://%s:9094/id", ipAddress[0])
-	} else {
-		url = "http://localhost:9094/id"
-	}
-
-
-	// Make an HTTP GET request
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	// Read the response body
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	// Check for HTTP errors
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("HTTP error: %s", resp.Status)
-	}
-
-	// Print the status URL to the console
-	fmt.Println("Status URL:", url)
-
-	
-	// Return the response body
-	return body, nil
+	return clusterid.Id, nil
 }
 
 // Function to verify access token and fetch data

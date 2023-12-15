@@ -24,6 +24,34 @@ func RegisterRoutes(router *gin.Engine) {
 		//////////////////////////////////////////////////////
 	
 func getStatus(c *gin.Context) {
+	//test ipaddress
+	ipaddress, err := helpers.GetIPAddress()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	fmt.Printf("ipaddress: %s\n", ipaddress)
+
+	//test ipfs id
+	ipfsid, err := helpers.GetIpfsId()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	fmt.Printf("ipfsid: %s\n", ipfsid)
+
+	//test clusterid function
+	clusterid, err := helpers.GetClusterID()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	fmt.Printf("clusterid: %s\n", clusterid)
+	
+	//get clusterID function
 	clusterID, err := helpers.GetClusterID()
 	if err != nil {
 		// Handle the error as needed
@@ -379,7 +407,6 @@ func getAccessFile(c *gin.Context) {
     // Pipe the reader to the response writer
     io.Copy(c.Writer, pr)
 }
-
 
 func downloadFile(c *gin.Context) {
 	// Implement the logic for the downloadFile function
