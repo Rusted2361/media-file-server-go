@@ -29,10 +29,12 @@ type UpdateNodeDetailsRequest struct {
 	IPFSClusterID  string `json:"ipfsClusterId"`
 	IPFSID         string `json:"ipfsId"`
 }
+
 /////Constants//////
 const retryDelay = 5 * time.Second;
 const maxRetries = 2;
 const hostURL = "https://storagechain-be.invo.zone/api";
+//const hostURL = "https://api.storagechain.io/api";
 
 // this will recursively check for clusterid and ipfs id
 func HeartBeat() {
@@ -73,7 +75,7 @@ func HeartBeat() {
 	}
 }
 
-func SaveNodeOsDetails(retries int) {
+func SaveNodeDetails(retries int) {
 	if retries == maxRetries {
 		fmt.Println("Retries", maxRetries, "times but didn't succeed")
 		os.Exit(1)
@@ -81,9 +83,9 @@ func SaveNodeOsDetails(retries int) {
 
 	retry := func() {
 		time.Sleep(retryDelay)
-		SaveNodeOsDetails(retries + 1)
+		SaveNodeDetails(retries + 1)
 	}
-
+	//get ipaddress
 	ipAddress, err := helpers.GetIPAddress()
 	if err != nil {
 		fmt.Println("Error getting IP address:", err)
@@ -91,7 +93,7 @@ func SaveNodeOsDetails(retries int) {
 		retry()
 	}
 	fmt.Println("IP Address:", ipAddress)
-
+	//get ipfs id
 	ipfsID, err := helpers.GetIpfsId()
 	if err != nil {
 		fmt.Println("Error getting IPFS ID:", err)
@@ -99,7 +101,7 @@ func SaveNodeOsDetails(retries int) {
 		return
 	}
 	fmt.Println("IPFS ID:", ipfsID)
-
+	//get cluster id
 	ipfsClusterID, err := helpers.GetClusterID()
 	if err != nil {
 		fmt.Println("Error getting IPFS Cluster ID:", err)
@@ -107,7 +109,7 @@ func SaveNodeOsDetails(retries int) {
 		return
 	}
 	fmt.Println("IPFS Cluster ID:", ipfsClusterID)
-
+	
 	nodeDetailsResponse, err := GetNodeDetails(ipAddress)
 	if err != nil {
 		fmt.Println("Error getting node details:", err)
@@ -160,6 +162,7 @@ func GetNodeDetails(ipAddress string) (*NodeDetailsResponse, error) {
 
 	return &nodeDetailsResponse, nil
 }
+
 func UpdateNode(updateNodeDetails UpdateNodeDetailsRequest) error {
 	// Implement logic to update node details using HTTP POST request
 	reqBody, err := json.Marshal(updateNodeDetails)

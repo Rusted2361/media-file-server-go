@@ -257,14 +257,10 @@ func getAccessFile(c *gin.Context) {
     accessData, ok := AccessDataResponse["data"].(map[string]interface{})
     if ok {
          fmt.Println("accessData value is accessed",accessData)
-     } else {
-         fmt.Println("accessData is not a valid map")
      }
     fileMetaDataValue, ok := accessData["fileMetaData"].([]interface{})
     if ok {
      fmt.Println("fileMetaDataValue is a valid array")
-    } else {
-     fmt.Println("Data is not a string")
     }
 
     // Custom sorting function
@@ -292,8 +288,6 @@ func getAccessFile(c *gin.Context) {
 		// Handle the case where "fileName" key is not present or has an unexpected type
 		fmt.Println("Error: 'fileName' key not found or has an unexpected type")
 		return
-	} else {
-		fmt.Println("fileName", fileName)
 	}
 	//Access fileType property
 	fileType, ok := accessData["fileType"].(string)
@@ -301,8 +295,6 @@ func getAccessFile(c *gin.Context) {
 		// Handle the case where "fileName" key is not present or has an unexpected type
 		fmt.Println("Error: 'fileType' key not found or has an unexpected type")
 		return
-	} else {
-		fmt.Println("fileType:", fileType)
 	}
 	// Setting response headers for content type and filename
 	c.Writer.Header().Set("Content-Type", fileType)
@@ -348,61 +340,23 @@ func getAccessFile(c *gin.Context) {
                 fmt.Println("Error:", err)
                 return
             }
-            fmt.Printf("fileRespone: %x\n", fileRespone)
+            //fmt.Printf("fileRespone: %x\n", fileRespone)
 		
-            //Access accessData->data property
-            accessData_data, ok := accessData["data"].(string)
-            if !ok {
-                // Handle the case where "data" key is not present or has an unexpected type
-                fmt.Println("Error: 'data' key not found or has an unexpected type")
-                return
-            }else {
-                fmt.Println("accessData_data:", accessData_data)
-            }
-            //Access accessData->secretKey property
-            accessData_secretKey, ok := accessData["secretKey"].(string)
-            if !ok {
-                // Handle the case where "secretKey" key is not present or has an unexpected type
-                fmt.Println("Error: 'secretKey' key not found or has an unexpected type")
-                return
-            }else {
-                fmt.Println("accessData_secretKey:", accessData_secretKey)
-            }
-            //Access accessData->accessKey property
-            accessData_accessKey, ok := accessData["accessKey"].(string)
-            if !ok {
-                // Handle the case where "accessKey" key is not present or has an unexpected type
-                fmt.Println("Error: 'accessKey' key not found or has an unexpected type")
-                return
-            }else {
-                fmt.Println("accessData_accessKey:", accessData_accessKey)
-            }
-            //Access accessData->iv property
-            accessData_iv, ok := accessData["iv"].(string)
-            if !ok {
-                // Handle the case where "iv" key is not present or has an unexpected type
-                fmt.Println("Error: 'iv' key not found or has an unexpected type")
-                return
-            }else {
-                fmt.Println("accessData_iv:", accessData_iv)
-            }
-            //Access accessData->salt property
-            accessData_salt, ok := accessData["salt"].(string)
-            if !ok {
-                // Handle the case where "salt" key is not present or has an unexpected type
-                fmt.Println("Error: 'salt' key not found or has an unexpected type")
-                return
-            }else {
-                fmt.Println("accessData_salt:", accessData_salt)
-            }
             // Decrypting data using a custom function
-			decryptedData, err := helpers.DecryptedSecretKeyAndFile(accessData_data, accessData_secretKey, accessData_accessKey, accessData_iv, string(fileRespone), accessData_salt)
+			decryptedData, err := helpers.DecryptedSecretKeyAndFile(
+				accessData["data"].(string), 
+				accessData["secretKey"].(string), 
+				accessData["accessKey"].(string), 
+				accessData["iv"].(string), 
+				string(fileRespone), 
+				accessData["salt"].(string),
+			)
 			if err != nil {
 				fmt.Println("Error:", err)
 				return
-			} else {
-                fmt.Println("decryptedData:", decryptedData)
-            }
+			}
+		
+			fmt.Println("Decrypted data:", string(decryptedData))
         }
     }()
     // Pipe the reader to the response writer
