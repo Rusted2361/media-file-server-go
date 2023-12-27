@@ -7,17 +7,21 @@ import (
 	"fmt"
 	"os"
 	"io"
+	//"errors"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 	"crypto/aes"
 	"crypto/cipher"
-	//"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"crypto/rand"
+	"hash"
+	//"encoding/base64"
 	"golang.org/x/crypto/pbkdf2"
 	"github.com/gin-gonic/gin"
+	//"golang.org/x/crypto/chacha20poly1305"
 )
 
 type IpfsID struct {
@@ -172,67 +176,60 @@ func generateSecretKeyForEncryption(secretKeyString string, userSalt string) ([]
 func fromHexString(hexString string) ([]byte, error) {
 	return hex.DecodeString(hexString)
 }
-
+func deriveKey(passphrase string, salt []byte) ([]byte, []byte) {
+	if salt == nil {
+		salt = make([]byte, 8)
+		// http://www.ietf.org/rfc/rfc2898.txt
+		// Salt.
+		rand.Read(salt)
+	}
+	return pbkdf2.Key([]byte(passphrase), salt, 1000, 32, sha256.New), salt
+}
+func deriveKeyInternal(passphrase string, salt []byte, h func() hash.Hash) ([]byte, []byte) {
+	return pbkdf2.Key([]byte(passphrase), salt, 1000, 32, h), salt
+}
+func pkcs7Unpad(data []byte) []byte {
+	if len(data) == 0 {
+		return nil
+	}
+	padLen := int(data[len(data)-1])
+	if padLen > len(data) {
+		// Invalid padding
+		return nil
+	}
+	return data[:len(data)-padLen]
+}
 // Function to decrypt data using AES-GCM
-func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, fileData, userSalt string) ([]byte, error) {
-	// Convert hex string to byte slice
-	newDataArray, err := fromHexString(data)
-	if err != nil {
-		return nil, err
-	}
+func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, fileData, userSalt string) (string, error) {
+    hexsalt, _ := hex.DecodeString(userSalt)
+	hexdata, _ := hex.DecodeString(data)
+	hexaccessKey, _ := hex.DecodeString(accessKey)
 	
-	fmt.Println("newDataArray",newDataArray)
-	// Generate the secret key for encryption
-	key, err := generateSecretKeyForEncryption(secretKey, userSalt)
+	fmt.Println("hexdata:",hexdata)
+	fmt.Println("accessKey:",accessKey)
+	trimaccessKey := hexaccessKey[:32]
+	fmt.Println("trimaccessKey:",trimaccessKey)
+
+//gcm method
+	key, _ := deriveKey(secretKey, []byte(hexsalt))
+	b, _ := aes.NewCipher(key)
+	
+	// Import 16 bytes nonce
+    aesgcm, err := cipher.NewGCMWithNonceSize(b, 32)
+    if err != nil {
+        panic(err.Error())
+    }
+	//aesgcm, _ := cipher.NewGCM(b)
+	// Decrypt the data
+	decryptedData, err := aesgcm.Open(nil, trimaccessKey, hexdata, nil)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	// Decrypt the encryption key using AES-GCM
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
+	// Convert the decrypted data to string
+	decryptedString := string(decryptedData)
 
-	// Create a new AES-GCM cipher mode using the AES cipher block
-	aesGCM, err := cipher.NewGCM(block)
-	if err != nil {
-		return nil, err
-	}
-
-	// Trim or hash the accessKey to make it 12 bytes
-	nonce := []byte(accessKey)[:12]
-
-	// Decrypt the encryption key using AES-GCM
-	// The `nil` slice is passed as the destination for the decrypted key (output)
-	// The nonce (iv) is provided as []byte(accessKey), and the ciphertext is newDataArray
-	encryptionKey, err := aesGCM.Open(nil, nonce, newDataArray, nil)
-	if err != nil {
-		return nil, fmt.Errorf("error decrypting ciphertext: %v", err)
-	}
-
-	// Import the decrypted encryption key
-	encryptionKeyForFile, err := aes.NewCipher(encryptionKey)
-	if err != nil {
-		return nil, err
-	}
-
-	// Decrypt the file data using the encryption key and IV
-	aesGCMFile, err := cipher.NewGCM(encryptionKeyForFile)
-	if err != nil {
-		return nil, err
-	}
-
-	// Decrypt the file data using AES-GCM
-	// The `nil` slice is passed as the destination for the decrypted data (output)
-	// The nonce (iv) is provided as []byte(iv), and the ciphertext is []byte(fileData)
-	decryptedData, err := aesGCMFile.Open(nil, []byte(iv), []byte(fileData), nil)
-	if err != nil {
-		return nil, fmt.Errorf("error decrypting file data: %v", err)
-	}
-
-	// Return the decrypted data
-	return decryptedData, nil
+	return decryptedString, nil
 }
 
 func HandleByteRange(c *gin.Context, path string, fileSize int64) {

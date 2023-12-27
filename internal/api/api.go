@@ -340,14 +340,15 @@ func getAccessFile(c *gin.Context) {
                 fmt.Println("Error:", err)
                 return
             }
-            //fmt.Printf("fileRespone: %x\n", fileRespone)
+			iv := accessData["iv"].(string)
+            
 		
             // Decrypting data using a custom function
 			decryptedData, err := helpers.DecryptedSecretKeyAndFile(
 				accessData["data"].(string), 
 				accessData["secretKey"].(string), 
 				accessData["accessKey"].(string), 
-				accessData["iv"].(string), 
+				iv, 
 				string(fileRespone), 
 				accessData["salt"].(string),
 			)
