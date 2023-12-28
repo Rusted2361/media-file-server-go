@@ -3,11 +3,10 @@ package helpers
 import (
 	"bytes"
 	"encoding/json"
-	//"net"
+	"time"
 	"fmt"
 	"os"
 	"io"
-	//"errors"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -16,12 +15,8 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/hex"
-	//"crypto/rand"
-	//"hash"
-	//"encoding/base64"
 	"golang.org/x/crypto/pbkdf2"
 	"github.com/gin-gonic/gin"
-	//"golang.org/x/crypto/chacha20poly1305"
 )
 
 type IpfsID struct {
@@ -129,38 +124,41 @@ func GetClusterID(ipAddress ...string) (string, error) {
 
 // Function to verify access token and fetch data
 func VerifyAccessToken(accessKey, token string) (map[string]interface{}, error) {
-			// Define the request payload
-			requestData := map[string]string{"accessKey": accessKey, "token": token}
-			requestBody, err := json.Marshal(requestData)
-			if err != nil {
-				return nil, err
-			}
-		
-			// Send a request to verify the access token
-			resp, err := http.Post(
-				"https://storagechain-be.invo.zone/api/file/access/verify-token",
-				"application/json",
-				bytes.NewBuffer(requestBody),
-			)
-			if err != nil {
-				return nil, err
-			}
-			defer resp.Body.Close()
-		
-			// Read the response body
-			responseBody, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return nil, err
-			}
-		
-			// Parse the JSON response
-			var responseData map[string]interface{}
-			err = json.Unmarshal(responseBody, &responseData)
-			if err != nil {
-				return nil, err
-			}
-		
-			return responseData, nil
+	// Define the request payload
+	requestData := map[string]string{"accessKey": accessKey, "token": token}
+
+	// Create an HTTP client with a timeout (adjust the timeout duration accordingly)
+	client := &http.Client{Timeout: 5 * time.Second}
+
+	// Encode the request payload directly into the request body
+	reqBody := new(bytes.Buffer)
+	if err := json.NewEncoder(reqBody).Encode(requestData); err != nil {
+		return nil, err
+	}
+
+	// Send a POST request to verify the access token
+	resp, err := client.Post(
+		"https://storagechain-be.invo.zone/api/file/access/verify-token",
+		"application/json",
+		reqBody,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Check the HTTP status code
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("non-successful HTTP status code: %d", resp.StatusCode)
+	}
+
+	// Parse the JSON response
+	var responseData map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
+		return nil, err
+	}
+
+	return responseData, nil
 }
 
 // Function to decrypt filedata using decrypted key iv and filedata

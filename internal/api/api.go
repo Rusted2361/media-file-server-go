@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"time"
 	"sort"
 	"net/http"
 	"io/ioutil"
@@ -290,6 +291,10 @@ func getAccessFile(c *gin.Context) {
     // Start a goroutine to produce data and write to the pipe
     go func() {
         defer pw.Close()
+
+		// Create an HTTP client with a timeout of 5 seconds
+		client := &http.Client{Timeout: 5 * time.Second}
+
         // Looping through ipfsMetaData and fetching file data
         for i := 0; i < len(ipfsMetaData); i++ {
             // Type-assert ipfsMetaData[i] to a map[string]interface{}
@@ -300,6 +305,7 @@ func getAccessFile(c *gin.Context) {
                 c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Invalid metadata format"})
                 return
             }
+
             // Fetch the "cid" value from the map
             cid, ok := metaData["cid"].(string)
             if !ok {
@@ -307,33 +313,32 @@ func getAccessFile(c *gin.Context) {
                 fmt.Println("Error: 'cid' key not found or has an unexpected type")
                 c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Invalid CID format"})
                 return
-            } else{
-                fmt.Println("cid:",cid)
             }
+
             // Making an HTTP GET request to fetch file data from IPFS
             url := fmt.Sprintf("http://46.101.133.110:8080/api/v0/cat/%s", cid)
+			
             // Make an HTTP GET request
-            respone, err := http.Get(url)
+            respone, err := client.Get(url)
             if err != nil {
                 fmt.Println("Error:", err)
                 return
             }
             defer respone.Body.Close()
+
             // Read the response body
             fileRespone, err := ioutil.ReadAll(respone.Body)
             if err != nil {
                 fmt.Println("Error:", err)
                 return
             }
-			iv := accessData["iv"].(string)
-            
-		
+			
             // Decrypting data using a custom function
 			decryptedData, err := helpers.DecryptedSecretKeyAndFile(
 				accessData["data"].(string), 
 				accessData["secretKey"].(string), 
 				accessData["accessKey"].(string), 
-				iv, 
+				accessData["iv"].(string), 
 				accessData["salt"].(string),
 				[]byte(fileRespone),
 			)
@@ -341,8 +346,6 @@ func getAccessFile(c *gin.Context) {
 				fmt.Println("Error:", err)
 				return
 			}
-			
-			// fmt.Println(string(decryptedData[:1000]))
 			
 			// Write the decrypted data to the pipe
 			pw.Write(decryptedData)
