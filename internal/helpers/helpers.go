@@ -163,7 +163,7 @@ func VerifyAccessToken(accessKey, token string) (map[string]interface{}, error) 
 			return responseData, nil
 }
 
-
+// Function to decrypt filedata using decrypted key iv and filedata
 func decryptFile(decryptedKey, trimiv, fileData []byte) ([]byte, error) {
 	
 	// Create a new AES block cipher with the key
@@ -189,11 +189,11 @@ func decryptFile(decryptedKey, trimiv, fileData []byte) ([]byte, error) {
 	return decryptedData, nil
 }
 
+//function to derive pbkf2 keyfrom secret key and salt
 func deriveKey(secretKey string, userSalt string) ([]byte) {
 	
 	// Derive the key using PBKDF2 with provided salt and other parameters
 	derivedKey := pbkdf2.Key([]byte(secretKey), []byte(userSalt), 1000, 32, sha256.New)
-
 	// Return the derived key
 	return derivedKey
 }

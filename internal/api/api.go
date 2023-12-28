@@ -282,7 +282,8 @@ func getAccessFile(c *gin.Context) {
 
 	// Setting response headers for content type and filename
 	c.Writer.Header().Set("Content-Type", accessData["fileType"].(string))
-	c.Writer.Header().Set("Content-Disposition", fmt.Sprintf(`filename="%s"`, accessData["fileName"].(string)))
+	c.Writer.Header().Set("Content-Disposition", accessData["fileName"].(string))
+	//c.Writer.Header().Set("Content-Disposition", fmt.Sprintf(`filename="%s"`, accessData["fileName"].(string)))
 
 	// Create a pipe
     pr, pw := io.Pipe()
