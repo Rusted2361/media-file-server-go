@@ -16,8 +16,8 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/hex"
-	"crypto/rand"
-	"hash"
+	//"crypto/rand"
+	//"hash"
 	//"encoding/base64"
 	"golang.org/x/crypto/pbkdf2"
 	"github.com/gin-gonic/gin"
@@ -163,73 +163,81 @@ func VerifyAccessToken(accessKey, token string) (map[string]interface{}, error) 
 			return responseData, nil
 }
 
-// Function to generate a secret key for encryption using PBKDF2
-func generateSecretKeyForEncryption(secretKeyString string, userSalt string) ([]byte, error) {
+
+func decryptFile(decryptedKey, trimiv, fileData []byte) ([]byte, error) {
+	
+	// Create a new AES block cipher with the key
+	b, err := aes.NewCipher(decryptedKey)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Create a GCM cipher mode
+	aesgcm, err := cipher.NewGCMWithNonceSize(b, 32)
+	if err != nil {
+		return nil, err
+	}
+
+	// Decrypt the data
+	decryptedData, err := aesgcm.Open(nil, trimiv, fileData, nil)
+	if err != nil {
+		return nil, err
+	}
+	
+	fmt.Println("Decrypted Data accessed")
+	
+	return decryptedData, nil
+}
+
+func deriveKey(secretKey string, userSalt string) ([]byte) {
+	
 	// Derive the key using PBKDF2 with provided salt and other parameters
-	derivedKey := pbkdf2.Key([]byte(secretKeyString), []byte(userSalt), 1000, 32, sha256.New)
+	derivedKey := pbkdf2.Key([]byte(secretKey), []byte(userSalt), 1000, 32, sha256.New)
 
 	// Return the derived key
-	return derivedKey, nil
+	return derivedKey
 }
 
-// Function to convert a hex string to a byte slice
-func fromHexString(hexString string) ([]byte, error) {
-	return hex.DecodeString(hexString)
-}
-func deriveKey(passphrase string, salt []byte) ([]byte, []byte) {
-	if salt == nil {
-		salt = make([]byte, 8)
-		// http://www.ietf.org/rfc/rfc2898.txt
-		// Salt.
-		rand.Read(salt)
-	}
-	return pbkdf2.Key([]byte(passphrase), salt, 1000, 32, sha256.New), salt
-}
-func deriveKeyInternal(passphrase string, salt []byte, h func() hash.Hash) ([]byte, []byte) {
-	return pbkdf2.Key([]byte(passphrase), salt, 1000, 32, h), salt
-}
-func pkcs7Unpad(data []byte) []byte {
-	if len(data) == 0 {
-		return nil
-	}
-	padLen := int(data[len(data)-1])
-	if padLen > len(data) {
-		// Invalid padding
-		return nil
-	}
-	return data[:len(data)-padLen]
-}
-// Function to decrypt data using AES-GCM
-func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, fileData, userSalt string) (string, error) {
-    hexsalt, _ := hex.DecodeString(userSalt)
-	hexdata, _ := hex.DecodeString(data)
+// Function to decrypt key and then decrypt data using AES-GCM
+func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, fileData []byte) ([]byte, error) {
+    
+	//nonce/iv to decrypt key
 	hexaccessKey, _ := hex.DecodeString(accessKey)
-	
-	fmt.Println("hexdata:",hexdata)
-	fmt.Println("accessKey:",accessKey)
 	trimaccessKey := hexaccessKey[:32]
-	fmt.Println("trimaccessKey:",trimaccessKey)
+	//data to decrypt key
+	hexdata, _ := hex.DecodeString(data)
+	
+	//nonce/iv to decrypt data
+	hexiv, _ :=hex.DecodeString(iv)
+	trimiv := hexiv[:32]
+	//fileData contains the original data to be decrypted
 
-//gcm method
-	key, _ := deriveKey(secretKey, []byte(hexsalt))
+	//gcm method
+	key:= deriveKey(secretKey, userSalt)
 	b, _ := aes.NewCipher(key)
 	
-	// Import 16 bytes nonce
+	//Import 32 bytes nonstandard nonce
     aesgcm, err := cipher.NewGCMWithNonceSize(b, 32)
     if err != nil {
         panic(err.Error())
     }
-	//aesgcm, _ := cipher.NewGCM(b)
-	// Decrypt the data
-	decryptedData, err := aesgcm.Open(nil, trimaccessKey, hexdata, nil)
+
+	// Decrypt the key
+	decryptedKey, err := aesgcm.Open(nil, trimaccessKey, hexdata, nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
+	fmt.Println("DecryptedKey accessed")
 
-	// Convert the decrypted data to string
-	decryptedString := string(decryptedData)
-
-	return decryptedString, nil
+	//Decrypt the Data
+	decryptedData, err := decryptFile(decryptedKey, trimiv, fileData)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil, err
+	}
+	
+	//return string(decryptedData), nil
+	return decryptedData, nil
 }
 
 func HandleByteRange(c *gin.Context, path string, fileSize int64) {

@@ -256,7 +256,7 @@ func getAccessFile(c *gin.Context) {
 	//This method uses map interfaces to deal with response data
     accessData, ok := AccessDataResponse["data"].(map[string]interface{})
     if ok {
-         fmt.Println("accessData value is accessed",accessData)
+         fmt.Println("accessData value is accessed")
      }
     fileMetaDataValue, ok := accessData["fileMetaData"].([]interface{})
     if ok {
@@ -278,27 +278,11 @@ func getAccessFile(c *gin.Context) {
 
     // Storing sorted data in ipfsMetaData
     ipfsMetaData := fileMetaDataValue
+    fmt.Println("ipfsMetaData sorted")	
 
-    // Print the sorted ipfsMetaData
-    fmt.Println("Sorted ipfsMetaData",ipfsMetaData)	
-
-	//Access fileName property
-	fileName, ok := accessData["fileName"].(string)
-	if !ok {
-		// Handle the case where "fileName" key is not present or has an unexpected type
-		fmt.Println("Error: 'fileName' key not found or has an unexpected type")
-		return
-	}
-	//Access fileType property
-	fileType, ok := accessData["fileType"].(string)
-	if !ok {
-		// Handle the case where "fileName" key is not present or has an unexpected type
-		fmt.Println("Error: 'fileType' key not found or has an unexpected type")
-		return
-	}
 	// Setting response headers for content type and filename
-	c.Writer.Header().Set("Content-Type", fileType)
-	c.Writer.Header().Set("Content-Disposition", fmt.Sprintf(`filename="%s"`, fileName))
+	c.Writer.Header().Set("Content-Type", accessData["fileType"].(string))
+	c.Writer.Header().Set("Content-Disposition", fmt.Sprintf(`filename="%s"`, accessData["fileName"].(string)))
 
 	// Create a pipe
     pr, pw := io.Pipe()
@@ -349,15 +333,19 @@ func getAccessFile(c *gin.Context) {
 				accessData["secretKey"].(string), 
 				accessData["accessKey"].(string), 
 				iv, 
-				string(fileRespone), 
 				accessData["salt"].(string),
+				[]byte(fileRespone),
 			)
 			if err != nil {
 				fmt.Println("Error:", err)
 				return
 			}
-		
-			fmt.Println("Decrypted data:", string(decryptedData))
+			
+			// fmt.Println(string(decryptedData[:1000]))
+			
+			// Write the decrypted data to the pipe
+			pw.Write(decryptedData)
+			
         }
     }()
     // Pipe the reader to the response writer
