@@ -268,7 +268,7 @@ func getAccessFile(c *gin.Context) {
      indexI, okI := fileMetaDataValue[i].(map[string]interface{})["index"].(float64)
      indexJ, okJ := fileMetaDataValue[j].(map[string]interface{})["index"].(float64)
 
-    // Check if type assertions were successful
+    // Check if type assertions are successful
     if okI && okJ {
      	return int(indexI) < int(indexJ)
     }
@@ -287,6 +287,7 @@ func getAccessFile(c *gin.Context) {
 
 	// Create a pipe
     pr, pw := io.Pipe()
+
     // Start a goroutine to produce data and write to the pipe
     go func() {
         defer pw.Close()

@@ -182,8 +182,6 @@ func decryptFile(decryptedKey, trimiv, fileData []byte) ([]byte, error) {
 		return nil, err
 	}
 	
-	fmt.Println("Decrypted Data accessed")
-	
 	return decryptedData, nil
 }
 
@@ -198,23 +196,28 @@ func deriveKey(secretKey string, userSalt string) ([]byte) {
 
 // Function to decrypt key and then decrypt data using AES-GCM
 func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, fileData []byte) ([]byte, error) {
-    
+    //Nonce and data to decrypt Master Key
 	//nonce/iv to decrypt key
 	hexaccessKey, _ := hex.DecodeString(accessKey)
 	trimaccessKey := hexaccessKey[:32]
+
 	//data to decrypt key
 	hexdata, _ := hex.DecodeString(data)
 	
+	//Nonce and data to decrypt original data
 	//nonce/iv to decrypt data
 	hexiv, _ :=hex.DecodeString(iv)
 	trimiv := hexiv[:32]
+
 	//fileData contains the original data to be decrypted
 
 	//gcm method
 	key:= deriveKey(secretKey, userSalt)
+
+	//cipher block generation from derived key
 	b, _ := aes.NewCipher(key)
-	
-	//Import 32 bytes nonstandard nonce
+
+	//gcm generation from 32 bytes nonstandard nonce
     aesgcm, err := cipher.NewGCMWithNonceSize(b, 32)
     if err != nil {
         panic(err.Error())
@@ -233,8 +236,9 @@ func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, 
 		fmt.Println("Error:", err)
 		return nil, err
 	}
-	
-	//return string(decryptedData), nil
+	fmt.Println("Decrypted Data accessed")
+
+	//return Decrypted Data
 	return decryptedData, nil
 }
 
