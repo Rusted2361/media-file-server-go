@@ -116,7 +116,7 @@ func SaveNodeDetails(retries int) {
 		retry()
 		return
 	}
-	fmt.Println("Node Details Response:", nodeDetailsResponse)
+	// fmt.Println("Node Details Response:", nodeDetailsResponse)
 
 	if nodeDetailsResponse.Data.IPFSClusterID != "" {
 		fmt.Println("Node details are already updated")
