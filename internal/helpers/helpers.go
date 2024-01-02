@@ -185,7 +185,7 @@ func decryptFile(decryptedKey, trimiv, fileData []byte) ([]byte, error) {
 	return decryptedData, nil
 }
 
-//function to derive pbkf2 keyfrom secret key and salt
+// Function to derive pbkf2 keyfrom secret key and salt
 func deriveKey(secretKey string, userSalt string) ([]byte) {
 	
 	// Derive the key using PBKDF2 with provided salt and other parameters
@@ -196,7 +196,13 @@ func deriveKey(secretKey string, userSalt string) ([]byte) {
 
 // Function to decrypt key and then decrypt data using AES-GCM
 func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, fileData []byte) ([]byte, error) {
-    //Nonce and data to decrypt Master Key
+    fmt.Println("Data:",data)
+	fmt.Println("secretKey:",secretKey)
+	fmt.Println("accessKey:",accessKey)
+	fmt.Println("iv:",iv)
+	fmt.Println("userSalt:",userSalt)
+	fmt.Println("fileData:",fileData[:100])
+	//Nonce and data to decrypt Master Key
 	//nonce/iv to decrypt key
 	hexaccessKey, _ := hex.DecodeString(accessKey)
 	trimaccessKey := hexaccessKey[:32]
@@ -228,12 +234,12 @@ func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, 
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("DecryptedKey accessed")
+	fmt.Println("DecryptedKey accessed",decryptedKey)
 
 	//Decrypt the Data
 	decryptedData, err := decryptFile(decryptedKey, trimiv, fileData)
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("Error2:", err)
 		return nil, err
 	}
 	fmt.Println("Decrypted Data accessed")
@@ -241,7 +247,7 @@ func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, 
 	//return Decrypted Data
 	return decryptedData, nil
 }
-
+// Function to handle byte range
 func HandleByteRange(c *gin.Context, path string, fileSize int64) {
 	rangeHeader := c.GetHeader("Range")
 	parts := strings.Split(strings.ReplaceAll(rangeHeader, "bytes=", ""), "-")
@@ -274,7 +280,7 @@ func HandleByteRange(c *gin.Context, path string, fileSize int64) {
 
 	io.CopyN(c.Writer, file, chunkSize)
 }
-
+// Function to handle full content
 func HandleFullContent(c *gin.Context, path string, fileSize int64) {
 	c.Writer.Header().Set("Content-Length", fmt.Sprintf("%d", fileSize))
 	c.Writer.Header().Set("Content-Type", "video/mp4")
@@ -290,8 +296,4 @@ func HandleFullContent(c *gin.Context, path string, fileSize int64) {
 	defer file.Close()
 
 	io.Copy(c.Writer, file)
-}
-
-func HandleExistingFile(c *gin.Context, path string) {
-	// Functionality for streaming and response of an existing file
 }
