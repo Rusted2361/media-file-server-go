@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"time"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"io"
-	"io/ioutil"
-	"net/http"
 	"strconv"
 	"strings"
+	"net/http"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
@@ -247,53 +247,64 @@ func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, 
 	//return Decrypted Data
 	return decryptedData, nil
 }
-// Function to handle byte range
-func HandleByteRange(c *gin.Context, path string, fileSize int64) {
-	rangeHeader := c.GetHeader("Range")
-	parts := strings.Split(strings.ReplaceAll(rangeHeader, "bytes=", ""), "-")
-	start, _ := strconv.ParseInt(parts[0], 10, 64)
-	end, _ := strconv.ParseInt(parts[1], 10, 64)
-	chunkSize := end - start + 1
+
+//Function to handle partial content
+func HandleRangeRequest(c *gin.Context, path string, fileSize int64) {
+	parts := c.Request.Header.Get("Range")[6:] // Remove "bytes=" prefix
+	rangeValues := strings.Split(parts, "-")
+
+	start, err := strconv.ParseInt(rangeValues[0], 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid start position in Range header"})
+		return
+	}
+
+	var end int64
+	if rangeValues[1] != "" {
+		end, err = strconv.ParseInt(rangeValues[1], 10, 64)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid end position in Range header"})
+			return
+		}
+	} else {
+		end = fileSize - 1
+	}
+
+	chunksize := end - start + 1
 
 	file, err := os.Open(path)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to open file",
-		})
+		fmt.Println("Error opening file:", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to open file"})
 		return
 	}
 	defer file.Close()
 
 	c.Writer.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", start, end, fileSize))
 	c.Writer.Header().Set("Accept-Ranges", "bytes")
-	c.Writer.Header().Set("Content-Length", fmt.Sprintf("%d", chunkSize))
+	c.Writer.Header().Set("Content-Length", strconv.FormatInt(chunksize, 10))
 	c.Writer.Header().Set("Content-Type", "video/mp4")
+
 	c.Writer.WriteHeader(http.StatusPartialContent)
 
-	_, err = file.Seek(start, io.SeekStart)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to seek file",
-		})
-		return
-	}
+	file.Seek(start, io.SeekStart)
 
-	io.CopyN(c.Writer, file, chunkSize)
+	io.CopyN(c.Writer, file, chunksize)
 }
-// Function to handle full content
-func HandleFullContent(c *gin.Context, path string, fileSize int64) {
-	c.Writer.Header().Set("Content-Length", fmt.Sprintf("%d", fileSize))
-	c.Writer.Header().Set("Content-Type", "video/mp4")
-	c.Writer.WriteHeader(http.StatusOK)
-
+//Function to handle full content
+func HandleFullRequest(c *gin.Context, path string, fileSize int64) {
 	file, err := os.Open(path)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to open file",
-		})
+		fmt.Println("Error opening file:", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to open file"})
 		return
 	}
 	defer file.Close()
+
+	c.Writer.Header().Set("Content-Length", strconv.FormatInt(fileSize, 10))
+	c.Writer.Header().Set("Content-Type", "video/mp4")
+
+	c.Writer.WriteHeader(http.StatusOK)
 
 	io.Copy(c.Writer, file)
 }
