@@ -21,12 +21,12 @@ func main() {
 	go recursion.CleanVideoDirectory("videos")
 
 	// Start SaveNodeDetails immediately
-	//go recursion.SaveNodeDetails(0)
+	go recursion.SaveNodeDetails(0)
 
 	// Register API routes
 	router := gin.Default()
 	api.RegisterRoutes(router)
-	if err := router.Run(":3009"); err != nil {
+	if err := router.Run(":3010"); err != nil {
 		fmt.Println("Failed to start the server:", err)
 	}
 
