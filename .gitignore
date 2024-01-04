@@ -1,0 +1,4 @@
+# Ignore generated files
+file-server-lin
+file-server-mac
+file-server-win.exe
