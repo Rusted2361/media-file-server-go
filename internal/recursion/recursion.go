@@ -172,10 +172,10 @@ func CleanVideoDirectory(directory string) {
 		if err != nil {
 			fmt.Printf("Error cleaning video directory: %v\n", err)
 		}
-		interval := 5
+		interval := 30
 		// Display a message in the terminal
-		log.Print("🗑 Video deletion check completed. Waiting for the next check after " + fmt.Sprintf("%v", interval) + " seconds...")
-		// Sleep for 5 seconds before the next junk deletion
+		log.Print("🗑 junk deletion check completed. Waiting for the next check after " + fmt.Sprintf("%v", interval) + " seconds...")
+		// Sleep for 30 seconds before the next junk deletion
 		time.Sleep(time.Duration(interval) * time.Second)
 	}
 }
