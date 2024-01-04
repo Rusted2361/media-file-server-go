@@ -26,7 +26,7 @@ func main() {
 	// Register API routes
 	router := gin.Default()
 	api.RegisterRoutes(router)
-	if err := router.Run(":3010"); err != nil {
+	if err := router.Run(":3011"); err != nil {
 		fmt.Println("Failed to start the server:", err)
 	}
 
