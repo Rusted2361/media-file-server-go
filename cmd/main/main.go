@@ -5,7 +5,7 @@ import (
 	//"time"
 	"github.com/gin-gonic/gin"
 	"media-file-server-go/internal/api"
-	//"media-file-server-go/internal/recursion"
+	"media-file-server-go/internal/recursion"
 	
 )
 
@@ -15,7 +15,7 @@ func main() {
 
 	// Delay for 10 seconds before starting HeartBeat
 	// time.Sleep(10 * time.Second)
-	//go recursion.HeartBeat()
+	go recursion.HeartBeat()
 
 	// Start SaveNodeDetails immediately
 	//go recursion.SaveNodeDetails(0)

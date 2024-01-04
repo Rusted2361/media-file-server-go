@@ -291,6 +291,7 @@ func HandleRangeRequest(c *gin.Context, path string, fileSize int64) {
 
 	io.CopyN(c.Writer, file, chunksize)
 }
+
 //Function to handle full content
 func HandleFullRequest(c *gin.Context, path string, fileSize int64) {
 	file, err := os.Open(path)

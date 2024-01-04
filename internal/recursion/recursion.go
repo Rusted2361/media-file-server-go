@@ -3,6 +3,7 @@ package recursion
 import (
     "fmt"
 	"time"
+	"path/filepath"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -67,6 +68,9 @@ func HeartBeat() {
 
 		}
 
+		// Perform video cleanup
+		cleanVideoDirectory("videos")
+
 		interval := 15
 		// Display a message in the terminal
 		log.Print("Heartbeat check completed. Waiting for the next check after " + fmt.Sprintf("%v", interval) + " seconds...")
@@ -75,6 +79,7 @@ func HeartBeat() {
 	}
 }
 
+//Savenode details to DB
 func SaveNodeDetails(retries int) {
 	if retries == maxRetries {
 		fmt.Println("Retries", maxRetries, "times but didn't succeed")
@@ -144,6 +149,31 @@ func SaveNodeDetails(retries int) {
 		return
 	}
 	fmt.Println("Node details updated successfully")
+}
+
+// cleanVideoDirectory removes video files older than 6 hours from the specified directory
+func cleanVideoDirectory(directory string) {
+	threshold := time.Now().Add(-6 * time.Hour)
+
+	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Check if the file is a regular file and older than the threshold
+		if info.Mode().IsRegular() && info.ModTime().Before(threshold) {
+			fmt.Printf("Deleting video file: %s\n", path)
+			if err := os.Remove(path); err != nil {
+				fmt.Printf("Error deleting file %s: %v\n", path, err)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		fmt.Printf("Error cleaning video directory: %v\n", err)
+	}
 }
 
 func GetNodeDetails(ipAddress string) (*NodeDetailsResponse, error) {
