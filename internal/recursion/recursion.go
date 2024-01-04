@@ -45,7 +45,7 @@ func HeartBeat() {
 
 		// If either local IPFS Cluster and IPFS node is not running, exit the application
 		if len(clusterResponseLocal) == 0 || len(ipfsResponseLocal) == 0 {
-			log.Print("Ipfs Cluster or Ipfs is not running locally.🌐")
+			log.Print("🌐 Ipfs Cluster or Ipfs is not running locally.")
 			//exit
 			os.Exit(1)
 
@@ -62,7 +62,7 @@ func HeartBeat() {
 
 		// If either global IPFS Cluster and IPFS node is not running, exit the application
 		if len(clusterResponseOnline) == 0 || len(ipfsResponseLocalOnline) == 0 {
-			log.Print("Ipfs Cluster or Ipfs is not running globally.🌐")
+			log.Print("🌐 Ipfs Cluster or Ipfs is not running globally.")
 			//exit
 			os.Exit(1)
 
@@ -94,7 +94,7 @@ func SaveNodeDetails(retries int) {
 		return
 		retry()
 	}
-	log.Print("🚀 IP Address:", ipAddress)
+	log.Print("🛰 IP Address:", ipAddress)
 	//get ipfs id
 	ipfsID, err := helpers.GetIpfsId()
 	if err != nil {
@@ -121,7 +121,7 @@ func SaveNodeDetails(retries int) {
 	// log.Print("Node Details Response:", nodeDetailsResponse)
 
 	if nodeDetailsResponse.Data.IPFSClusterID != "" {
-		log.Print("🚀 Node details are already updated")
+		log.Print("✨ Node details are already updated")
 		// Return success message or handle as needed
 		return
 	}
