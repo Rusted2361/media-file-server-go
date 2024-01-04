@@ -79,7 +79,7 @@ func HeartBeat() {
 //Savenode details to DB
 func SaveNodeDetails(retries int) {
 	if retries == maxRetries {
-		fmt.Println("Retries", maxRetries, "times but didn't succeed ❌")
+		fmt.Println("❌ Retries", maxRetries, "times but didn't succeed")
 		//os.Exit(1)
 	}
 
@@ -121,7 +121,7 @@ func SaveNodeDetails(retries int) {
 	// fmt.Println("Node Details Response:", nodeDetailsResponse)
 
 	if nodeDetailsResponse.Data.IPFSClusterID != "" {
-		fmt.Println("Node details are already updated")
+		fmt.Println("🚀 Node details are already updated")
 		// Return success message or handle as needed
 		return
 	}
