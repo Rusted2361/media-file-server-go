@@ -21,7 +21,7 @@ func main() {
 	go recursion.CleanVideoDirectory("videos")
 
 	// Start SaveNodeDetails immediately
-	//go recursion.SaveNodeDetails(0)
+	go recursion.SaveNodeDetails(0)
 
 	// Register API routes
 	router := gin.Default()
