@@ -1,7 +1,6 @@
 package recursion
 
 import (
-    "fmt"
 	"time"
 	"path/filepath"
 	"encoding/json"
@@ -45,7 +44,7 @@ func HeartBeat() {
 
 		// If either local IPFS Cluster and IPFS node is not running, exit the application
 		if len(clusterResponseLocal) == 0 || len(ipfsResponseLocal) == 0 {
-			fmt.Println("Ipfs Cluster or Ipfs is not running locally.🌐")
+			log.Print("Ipfs Cluster or Ipfs is not running locally.🌐")
 			//exit
 			os.Exit(1)
 
@@ -62,7 +61,7 @@ func HeartBeat() {
 
 		// If either global IPFS Cluster and IPFS node is not running, exit the application
 		if len(clusterResponseOnline) == 0 || len(ipfsResponseLocalOnline) == 0 {
-			fmt.Println("Ipfs Cluster or Ipfs is not running globally.🌐")
+			log.Print("Ipfs Cluster or Ipfs is not running globally.🌐")
 			//exit
 			os.Exit(1)
 
@@ -79,7 +78,7 @@ func HeartBeat() {
 //Savenode details to DB
 func SaveNodeDetails(retries int) {
 	if retries == maxRetries {
-		fmt.Println("❌ Retries", maxRetries, "times but didn't succeed")
+		log.Print("❌ Retries", maxRetries, "times but didn't succeed")
 		//os.Exit(1)
 	}
 
@@ -90,45 +89,45 @@ func SaveNodeDetails(retries int) {
 	//get ipaddress
 	ipAddress, err := helpers.GetIPAddress()
 	if err != nil {
-		fmt.Println("Error getting IP address:", err)
+		log.Print("Error getting IP address:", err)
 		return
 		retry()
 	}
-	fmt.Println("IP Address:", ipAddress)
+	log.Print("🚀 IP Address:", ipAddress)
 	//get ipfs id
 	ipfsID, err := helpers.GetIpfsId()
 	if err != nil {
-		fmt.Println("Error getting IPFS ID:", err)
+		log.Print("Error getting IPFS ID:", err)
 		retry()
 		return
 	}
-	fmt.Println("IPFS ID:", ipfsID)
+	log.Print("🚀 IPFS ID:", ipfsID)
 	//get cluster id
 	ipfsClusterID, err := helpers.GetClusterID()
 	if err != nil {
-		fmt.Println("Error getting IPFS Cluster ID:", err)
+		log.Print("Error getting IPFS Cluster ID:", err)
 		retry()
 		return
 	}
-	fmt.Println("IPFS Cluster ID:", ipfsClusterID)
+	log.Print("🚀 IPFS Cluster ID:", ipfsClusterID)
 	
 	nodeDetailsResponse, err := GetNodeDetails(ipAddress)
 	if err != nil {
-		fmt.Println("Error getting node details:", err)
+		log.Print("Error getting node details:", err)
 		retry()
 		return
 	}
-	// fmt.Println("Node Details Response:", nodeDetailsResponse)
+	// log.Print("Node Details Response:", nodeDetailsResponse)
 
 	if nodeDetailsResponse.Data.IPFSClusterID != "" {
-		fmt.Println("🚀 Node details are already updated")
+		log.Print("🚀 Node details are already updated")
 		// Return success message or handle as needed
 		return
 	}
-	fmt.Println("nodeDetailsResponse.Data.IPFSClusterID:", nodeDetailsResponse.Data.IPFSClusterID)
+	log.Print("nodeDetailsResponse.Data.IPFSClusterID:", nodeDetailsResponse.Data.IPFSClusterID)
 
 	if ipfsClusterID == "" || ipfsID == "" {
-		fmt.Println("IPFS ID or IPFS Cluster ID not found. Retrying...")
+		log.Print("IPFS ID or IPFS Cluster ID not found. Retrying...")
 		retry()
 		return
 	}
@@ -141,11 +140,11 @@ func SaveNodeDetails(retries int) {
 
 	err = UpdateNode(updateNodeDetails)
 	if err != nil {
-		fmt.Println("Error updating node details:", err)
+		log.Print("Error updating node details:", err)
 		retry()
 		return
 	}
-	fmt.Println("Node details updated successfully 😉")
+	log.Print("Node details updated successfully 😉")
 }
 
 // cleanVideoDirectory removes video files older than 6 hours from the specified directory
