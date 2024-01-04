@@ -17,6 +17,9 @@ func main() {
 	// time.Sleep(10 * time.Second)
 	go recursion.HeartBeat()
 
+	//start video deletion task
+	go recursion.CleanVideoDirectory("videos")
+
 	// Start SaveNodeDetails immediately
 	//go recursion.SaveNodeDetails(0)
 

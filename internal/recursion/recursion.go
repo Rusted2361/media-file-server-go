@@ -45,7 +45,7 @@ func HeartBeat() {
 
 		// If either local IPFS Cluster and IPFS node is not running, exit the application
 		if len(clusterResponseLocal) == 0 || len(ipfsResponseLocal) == 0 {
-			fmt.Println("Ipfs Cluster or Ipfs is not running locally.")
+			fmt.Println("Ipfs Cluster or Ipfs is not running locally.🌐")
 			//exit
 			os.Exit(1)
 
@@ -62,18 +62,15 @@ func HeartBeat() {
 
 		// If either global IPFS Cluster and IPFS node is not running, exit the application
 		if len(clusterResponseOnline) == 0 || len(ipfsResponseLocalOnline) == 0 {
-			fmt.Println("Ipfs Cluster or Ipfs is not running globally.")
+			fmt.Println("Ipfs Cluster or Ipfs is not running globally.🌐")
 			//exit
 			os.Exit(1)
 
 		}
 
-		// Perform video cleanup
-		cleanVideoDirectory("videos")
-
 		interval := 15
 		// Display a message in the terminal
-		log.Print("Heartbeat check completed. Waiting for the next check after " + fmt.Sprintf("%v", interval) + " seconds...")
+		log.Print("💌🧚‍♀️💗🌨🥡🍥 Heartbeat check completed. Waiting for the next check after " + fmt.Sprintf("%v", interval) + " seconds...")
 		// Sleep for 5 seconds before the next heartbeat
 		time.Sleep(time.Duration(interval) * time.Second)
 	}
@@ -82,8 +79,8 @@ func HeartBeat() {
 //Savenode details to DB
 func SaveNodeDetails(retries int) {
 	if retries == maxRetries {
-		fmt.Println("Retries", maxRetries, "times but didn't succeed")
-		os.Exit(1)
+		fmt.Println("Retries", maxRetries, "times but didn't succeed ❌")
+		//os.Exit(1)
 	}
 
 	retry := func() {
@@ -148,31 +145,38 @@ func SaveNodeDetails(retries int) {
 		retry()
 		return
 	}
-	fmt.Println("Node details updated successfully")
+	fmt.Println("Node details updated successfully 😉")
 }
 
 // cleanVideoDirectory removes video files older than 6 hours from the specified directory
-func cleanVideoDirectory(directory string) {
-	threshold := time.Now().Add(-6 * time.Hour)
+func CleanVideoDirectory(directory string) {
+	for {
+		threshold := time.Now().Add(-6 * time.Hour)
 
-	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// Check if the file is a regular file and older than the threshold
-		if info.Mode().IsRegular() && info.ModTime().Before(threshold) {
-			fmt.Printf("Deleting video file: %s\n", path)
-			if err := os.Remove(path); err != nil {
-				fmt.Printf("Error deleting file %s: %v\n", path, err)
+		err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
 			}
+
+			// Check if the file is a regular file and older than the threshold
+			if info.Mode().IsRegular() && info.ModTime().Before(threshold) {
+				fmt.Printf("Deleting video file 📁: %s\n", path)
+				if err := os.Remove(path); err != nil {
+					fmt.Printf("Error deleting file 📁 %s: %v\n", path, err)
+				}
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			fmt.Printf("Error cleaning video directory: %v\n", err)
 		}
-
-		return nil
-	})
-
-	if err != nil {
-		fmt.Printf("Error cleaning video directory: %v\n", err)
+		interval := 5
+		// Display a message in the terminal
+		log.Print("🗑 Video deletion check completed. Waiting for the next check after " + fmt.Sprintf("%v", interval) + " seconds...")
+		// Sleep for 5 seconds before the next junk deletion
+		time.Sleep(time.Duration(interval) * time.Second)
 	}
 }
 
