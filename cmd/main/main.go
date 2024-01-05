@@ -15,7 +15,7 @@ func main() {
 
 	// Delay for 10 seconds before starting HeartBeat
 	time.Sleep(10 * time.Second)
-	//go recursion.HeartBeat()
+	go recursion.HeartBeat()
 
 	//start video deletion task
 	go recursion.CleanVideoDirectory("videos")
