@@ -47,7 +47,7 @@ func HeartBeat() {
 		if len(clusterResponseLocal) == 0 || len(ipfsResponseLocal) == 0 {
 			log.Print("🌐 Ipfs Cluster or Ipfs is not running locally.")
 			//exit
-			os.Exit(1)
+		//	os.Exit(1)
 
 		}
 
@@ -64,7 +64,7 @@ func HeartBeat() {
 		if len(clusterResponseOnline) == 0 || len(ipfsResponseLocalOnline) == 0 {
 			log.Print("🌐 Ipfs Cluster or Ipfs is not running globally.")
 			//exit
-			os.Exit(1)
+		//	os.Exit(1)
 
 		}
 
@@ -177,6 +177,7 @@ func CleanVideoDirectory(directory string) {
 		log.Print("🗑 junk deletion check completed. Waiting for the next check after " + fmt.Sprintf("%v", interval) + " seconds...")
 		// Sleep for 30 seconds before the next junk deletion
 		time.Sleep(time.Duration(interval) * time.Second)
+		HeartBeat()
 	}
 }
 

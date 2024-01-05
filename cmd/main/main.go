@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	//"time"
+	"time"
 	"github.com/gin-gonic/gin"
 	"media-file-server-go/internal/api"
 	"media-file-server-go/internal/recursion"
@@ -14,8 +14,8 @@ import (
 func main() {
 
 	// Delay for 10 seconds before starting HeartBeat
-	// time.Sleep(10 * time.Second)
-	go recursion.HeartBeat()
+	time.Sleep(10 * time.Second)
+	//go recursion.HeartBeat()
 
 	//start video deletion task
 	go recursion.CleanVideoDirectory("videos")
@@ -26,7 +26,7 @@ func main() {
 	// Register API routes
 	router := gin.Default()
 	api.RegisterRoutes(router)
-	if err := router.Run(":3009"); err != nil {
+	if err := router.Run(":3008"); err != nil {
 		fmt.Println("Failed to start the server:", err)
 	}
 
