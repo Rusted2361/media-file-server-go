@@ -80,7 +80,7 @@ func HeartBeat() {
 func SaveNodeDetails(retries int) {
 	if retries == maxRetries {
 		log.Print("❌ Retries", maxRetries, "times but didn't succeed")
-		//os.Exit(1)
+		os.Exit(1)
 	}
 
 	retry := func() {
@@ -177,6 +177,7 @@ func CleanVideoDirectory(directory string) {
 		log.Print("🗑 junk deletion check completed. Waiting for the next check after " + fmt.Sprintf("%v", interval) + " seconds...")
 		// Sleep for 30 seconds before the next junk deletion
 		time.Sleep(time.Duration(interval) * time.Second)
+		
 	}
 }
 
