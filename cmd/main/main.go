@@ -14,7 +14,7 @@ import (
 		//////////////////////////////////////////////////////
 func main() {
 	// Delay for 10 seconds before starting HeartBeat
-	time.Sleep(2 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	// Start SaveNodeDetails immediately
 	go recursion.SaveNodeDetails(0)
