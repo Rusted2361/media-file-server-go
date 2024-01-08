@@ -4,26 +4,11 @@ This repository contains the implementation of a media file server with various 
 Modules & Use Cases
 1. File Controller
 Implemented APIs:
-getstatus API:
+getstatus API
+playvideo API
+getaccessfile API
+download API
 
-Description: Returns true if the process 1 (ipfs-cluster-runner) is running.
-Endpoint: /api/file/node/status
-Example URL: http://39.62.5.88:3008/api/file/node/status
-play video API:
-
-Description: Play video when access token passed in URL.
-Endpoint: /api/file/view/access-play/:access-token
-Example URL: http://39.62.5.88:3008/api/file/view/access-play/unRyi9hfZVOye6KiNXCFg1eO91SJufs5
-getaccessfile API:
-
-Description: Access static file (image, doc, etc.) when access token passed in URL.
-Endpoint: /api/file/view/access/:access-key
-Example URL: http://39.62.5.88:3008/api/file/view/access/<access-key-of-static-file>
-downloadfile API:
-
-Description: Access & download static file (image, doc, etc.) when access token passed in URL.
-Endpoint: /api/file/download/:access-key
-Example URL: http://39.62.5.88:3008/api/file/download/<access-key-of-static-file>
 Test Cases:
 Play Video Test:
 
