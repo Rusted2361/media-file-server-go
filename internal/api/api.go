@@ -104,7 +104,7 @@ func playVideo(c *gin.Context) {
     })
     // Storing sorted data in ipfsMetaData
     ipfsMetaData := fileMetaDataValue
-    fmt.Println("ipfsMetaData sorted")
+    fmt.Println("ipfsMetaData sorted",ipfsMetaData)
     path := fmt.Sprintf("videos/%s%s", accessData["accessKey"].(string), accessData["fileName"].(string))
     if _, err := os.Stat(path); os.IsNotExist(err) {
         file, err := os.Create(path)
@@ -227,7 +227,7 @@ func getAccessFile(c *gin.Context) {
 
     // Storing sorted data in ipfsMetaData
     ipfsMetaData := fileMetaDataValue
-    fmt.Println("ipfsMetaData sorted")	
+    fmt.Println("ipfsMetaData sorted",ipfsMetaData)	
 
 	// Setting response headers for content type and filename
 	c.Writer.Header().Set("Content-Type", accessData["fileType"].(string))
@@ -292,9 +292,10 @@ func getAccessFile(c *gin.Context) {
 				[]byte(fileRespone),
 			)
 			if err != nil {
-				fmt.Println("Error1:", err)
-				return
-			}
+                fmt.Println("Error:", err)
+                c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to decrypt file data"})
+                return
+            }
 			
 			// Write the decrypted data to the pipe
 			pw.Write(decryptedData)
@@ -404,9 +405,10 @@ func downloadFile(c *gin.Context) {
 					[]byte(fileRespone),
 				)
 				if err != nil {
-					fmt.Println("Error:", err)
-					return
-				}
+                    fmt.Println("Error:", err)
+                    c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to decrypt file data"})
+                    return
+                }
 				
 				// Write the decrypted data to the pipe
 				pw.Write(decryptedData)
