@@ -18,7 +18,8 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 	"github.com/gin-gonic/gin"
 )
-
+const hostURLdev = "https://storagechain-be.invo.zone/api";
+const hostURLlive = "https://api.storagechain.io/api";
 type IpfsID struct {
     Id string
 }
@@ -137,8 +138,9 @@ func VerifyAccessToken(accessKey, token string) (map[string]interface{}, error) 
 	}
 
 	// Send a POST request to verify the access token
+	url := fmt.Sprintf("%s/file/access/verify-token", hostURLdev)
 	resp, err := client.Post(
-		"https://storagechain-be.invo.zone/api/file/access/verify-token",
+		url,
 		"application/json",
 		reqBody,
 	)
@@ -162,10 +164,12 @@ func VerifyAccessToken(accessKey, token string) (map[string]interface{}, error) 
 }
 
 // Function to decrypt filedata using decrypted key iv and filedata
-func decryptFile(decryptedKey, trimiv, fileData []byte) ([]byte, error) {
-	
+func decryptor(key, trimiv, data []byte) ([]byte, error) {
+	fmt.Println("decryptedKey:",key)
+	fmt.Println("trimiv:",trimiv)
+	fmt.Println("len of fileData:",len(data))
 	// Create a new AES block cipher with the key
-	b, err := aes.NewCipher(decryptedKey)
+	b, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
@@ -177,11 +181,10 @@ func decryptFile(decryptedKey, trimiv, fileData []byte) ([]byte, error) {
 	}
 
 	// Decrypt the data
-	decryptedData, err := aesgcm.Open(nil, trimiv, fileData, nil)
+	decryptedData, err := aesgcm.Open(nil, trimiv, data, nil)
 	if err != nil {
 		return nil, err
 	}
-	
 	return decryptedData, nil
 }
 
@@ -196,12 +199,7 @@ func deriveKey(secretKey string, userSalt string) ([]byte) {
 
 // Function to decrypt key and then decrypt data using AES-GCM
 func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, fileData []byte) ([]byte, error) {
-    fmt.Println("Data:",data)
-	fmt.Println("secretKey:",secretKey)
-	fmt.Println("accessKey:",accessKey)
-	fmt.Println("iv:",iv)
-	fmt.Println("userSalt:",userSalt)
-	fmt.Println("fileData:",fileData[:100])
+    
 	//Nonce and data to decrypt Master Key
 	//nonce/iv to decrypt key
 	hexaccessKey, _ := hex.DecodeString(accessKey)
@@ -214,30 +212,19 @@ func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, 
 	//nonce/iv to decrypt data
 	hexiv, _ :=hex.DecodeString(iv)
 	trimiv := hexiv[:32]
-
 	//fileData contains the original data to be decrypted
 
 	//gcm method
 	key:= deriveKey(secretKey, userSalt)
 
-	//cipher block generation from derived key
-	b, _ := aes.NewCipher(key)
-
-	//gcm generation from 32 bytes nonstandard nonce
-    aesgcm, err := cipher.NewGCMWithNonceSize(b, 32)
-    if err != nil {
-        panic(err.Error())
-    }
-
-	// Decrypt the key
-	decryptedKey, err := aesgcm.Open(nil, trimaccessKey, hexdata, nil)
+	decryptedKey, err := decryptor(key, trimaccessKey, hexdata)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Println("DecryptedKey accessed",decryptedKey)
-
+	
 	//Decrypt the Data
-	decryptedData, err := decryptFile(decryptedKey, trimiv, fileData)
+	decryptedData, err := decryptor(decryptedKey, trimiv, fileData)
 	if err != nil {
 		fmt.Println("Error2:", err)
 		return nil, err
