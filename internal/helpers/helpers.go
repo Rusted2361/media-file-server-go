@@ -203,16 +203,12 @@ func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, 
     
 	//Nonce and data to decrypt Master Key
 	//nonce/iv to decrypt key
-	hexaccessKey, _ := hex.DecodeString(accessKey)
-	trimaccessKey := hexaccessKey[:32]
-
+	trimaccessKey := []byte(accessKey)
 	//data to decrypt key
 	hexdata, _ := hex.DecodeString(data)
-	
-	//Nonce and data to decrypt original data
+
 	//nonce/iv to decrypt data
-	hexiv, _ :=hex.DecodeString(iv)
-	trimiv := hexiv[:32]
+	trimiv := []byte(iv)
 	//fileData contains the original data to be decrypted
 
 	//gcm method
@@ -230,8 +226,7 @@ func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, 
 		fmt.Println("Error:", err)
 		return nil, err
 	}
-	fmt.Println("Decrypted Data accessed",len(fileData), len(decryptedData))
-
+	fmt.Println("Decrypted Data accessed",decryptedData[:100])
 	//return Decrypted Data
 	return decryptedData, nil
 }

@@ -14,11 +14,7 @@ import (
 		//////////////////////////////////////////////////////
 func main() {
 	// Delay for 10 seconds before starting HeartBeat
-<<<<<<< HEAD
-	time.Sleep(3 * time.Second)
-=======
-	//time.Sleep(5 * time.Second)
->>>>>>> server-test
+	//time.Sleep(3 * time.Second)
 
 	// Start SaveNodeDetails immediately
 	//go recursion.SaveNodeDetails(0)
@@ -28,23 +24,6 @@ func main() {
 	api.RegisterRoutes(router)
 
 	// Run HeartBeat in a goroutine with recovery
-<<<<<<< HEAD
-    go func() {
-     for {
-         func() {
-             defer func() {
-                 if r := recover(); r != nil {
-                     log.Printf("HeartBeat recovered from panic: %v", r)
-                 }
-             }()
-             // Start HeartBeat
-             recursion.HeartBeat()
-         }()
-         // Sleep for a short interval before restarting HeartBeat
-         //time.Sleep(2 * time.Second)
-     }
-    }()
-=======
 	// go func() {
 	// 	for {
 	// 		func() {
@@ -62,7 +41,6 @@ func main() {
 	// 		time.Sleep(2 * time.Second)
 	// 	}
 	// }()
->>>>>>> server-test
 
 	// Start video deletion task
 	//go recursion.CleanVideoDirectory("videos")
