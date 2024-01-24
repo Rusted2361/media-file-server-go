@@ -85,8 +85,10 @@ func playVideo(c *gin.Context) {
     // This method uses map interfaces to deal with response data
     accessData, ok := AccessDataResponse["data"].(map[string]interface{})
     if ok {
-        fmt.Println("accessData value is accessed")
+        fmt.Println("accessData value is accessed",accessData)
+        
     }
+    
     fileMetaDataValue, ok := accessData["fileMetaData"].([]interface{})
     if ok {
         fmt.Println("fileMetaDataValue is a valid array")
@@ -105,8 +107,47 @@ func playVideo(c *gin.Context) {
     // Storing sorted data in ipfsMetaData
     ipfsMetaData := fileMetaDataValue
     fmt.Println("ipfsMetaData sorted",ipfsMetaData)
+    //path creation for checking video file locally 
     path := fmt.Sprintf("videos/%s%s", accessData["accessKey"].(string), accessData["fileName"].(string))
-    if _, err := os.Stat(path); os.IsNotExist(err) {
+
+    
+    //bool to store filepath exist or not
+    isFileExist := helpers.FileExists(path)
+    //float to store original file size
+    videoFileSize := accessData["fileSize"].(float64)
+    fmt.Println("videoFileSize",videoFileSize)
+    localfileSize := helpers.GetFileSize(path)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+    fmt.Println("localfileSize",localfileSize)
+    if isFileExist && videoFileSize == localfileSize {
+        // File exists locally. Stream video...
+        fmt.Println("~ File exists locally. Streaming...")
+        file, err := os.Open(path)
+        if err != nil {
+            fmt.Println("Error opening file:", err)
+            c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to open file"})
+            return
+        }
+        defer file.Close()
+        stat, err := file.Stat()
+        if err != nil {
+            fmt.Println("Error getting file information:", err)
+            c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to get file information"})
+            return
+        }
+        fileSize := stat.Size()
+        fmt.Println("fileSize of local video",float64(stat.Size()))
+        rangeHeader := c.Request.Header.Get("Range")
+        if rangeHeader != "" {
+            helpers.HandleRangeRequest(c, path, fileSize)
+            return
+        }
+        helpers.HandleFullRequest(c, path, fileSize)
+    } else {
+       
         file, err := os.Create(path)
         if err != nil {
             fmt.Println("Error creating file:", err)
@@ -151,29 +192,6 @@ func playVideo(c *gin.Context) {
             }
             file.Write(decryptedData)
         }
-        stat, err := file.Stat()
-        if err != nil {
-            fmt.Println("Error getting file information:", err)
-            c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to get file information"})
-            return
-        }
-        fileSize := stat.Size()
-        rangeHeader := c.Request.Header.Get("Range")
-        if rangeHeader != "" {
-            helpers.HandleRangeRequest(c, path, fileSize)
-            return
-        }
-        helpers.HandleFullRequest(c, path, fileSize)
-    } else {
-        // File exists locally. Stream video...
-        fmt.Println(":rocket: ~ File exists locally. Streaming...")
-        file, err := os.Open(path)
-        if err != nil {
-            fmt.Println("Error opening file:", err)
-            c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to open file"})
-            return
-        }
-        defer file.Close()
         stat, err := file.Stat()
         if err != nil {
             fmt.Println("Error getting file information:", err)

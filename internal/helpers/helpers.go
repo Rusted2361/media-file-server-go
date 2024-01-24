@@ -227,6 +227,21 @@ func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, 
 	return decryptedData, nil
 }
 
+//helper to check filepath
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
+}
+
+//helper to get filesize
+func GetFileSize(filePath string) (float64) {
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return 0
+	}
+	return float64(fileInfo.Size())
+}
+
 //Function to handle partial content
 func HandleRangeRequest(c *gin.Context, path string, fileSize int64) {
 	parts := c.Request.Header.Get("Range")[6:] // Remove "bytes=" prefix
