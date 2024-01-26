@@ -227,19 +227,107 @@ func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, 
 	return decryptedData, nil
 }
 
-//helper to check filepath
+//Function to check filepath
 func FileExists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
 }
 
-//helper to get filesize
+//Function to get filesize
 func GetFileSize(filePath string) (float64) {
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
 		return 0
 	}
 	return float64(fileInfo.Size())
+}
+
+//Function to decrypt and download
+func DownloadAndWriteChunks(ipfsMetaData []interface{}, accessData map[string]interface{}, path string, c *gin.Context) error  {
+    file, err := os.Create(path)
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to create file"})
+		return err
+	}
+	defer file.Close()
+		
+	for i := 0; i < len(ipfsMetaData); i++ {
+		fmt.Println("len(ipfsMetaData)",len(ipfsMetaData))
+		metaData := ipfsMetaData[i].(map[string]interface{})
+		cid, ok := metaData["cid"].(string)
+		if !ok {
+			fmt.Println("Error: 'cid' key not found or has an unexpected type")
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Invalid CID format"})
+			return err
+		}
+		url := fmt.Sprintf("http://46.101.133.110:8080/api/v0/cat/%s", cid)
+		response, err := http.Get(url)
+		if err != nil {
+			fmt.Println("Error:", err)
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch file data from IPFS"})
+			return err
+		}
+		defer response.Body.Close()
+		fileResponse, err := io.ReadAll(response.Body)
+		if err != nil {
+			fmt.Println("Error:", err)
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to read file response"})
+			return err
+		}
+		decryptedData, err := DecryptedSecretKeyAndFile(
+			accessData["data"].(string),
+			accessData["secretKey"].(string),
+			accessData["accessKey"].(string),
+			accessData["iv"].(string),
+			accessData["salt"].(string),
+			fileResponse,
+		)
+		if err != nil {
+			fmt.Println("Error:", err)
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to decrypt file data"})
+			return err
+		}
+		file.Write(decryptedData)
+	}
+	stat, err := file.Stat()
+	if err != nil {
+		fmt.Println("Error getting file information:", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to get file information"})
+		return err
+	}
+	fileSize := stat.Size()
+	rangeHeader := c.Request.Header.Get("Range")
+	if rangeHeader != "" {
+		HandleRangeRequest(c, path, fileSize)
+		return err
+	}
+	HandleFullRequest(c, path, fileSize)
+
+	return nil
+}
+
+//Function to stream local video
+func StreamVideo(path string, c *gin.Context) {
+    fmt.Println("~ File exists locally. Streaming...")
+    file, err := os.Open(path)
+    if err != nil {
+        c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    defer file.Close()
+    stat, err := file.Stat()
+    if err != nil {
+        c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    fileSize := stat.Size()
+    rangeHeader := c.Request.Header.Get("Range")
+    if rangeHeader != "" {
+        HandleRangeRequest(c, path, fileSize)
+        return
+    }
+    HandleFullRequest(c, path, fileSize)
 }
 
 //Function to handle partial content

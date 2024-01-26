@@ -3,11 +3,9 @@ package api
 import (
 	"fmt"
 	"sort"
-	//"sync"
 	"net/http"
 	"io/ioutil"
 	"io"
-	"os"
     "github.com/gin-gonic/gin"
 	"media-file-server-go/internal/helpers"
 )
@@ -76,23 +74,26 @@ func playVideo(c *gin.Context) {
     // Extract access key and token from URL parameters
     accessKey := c.Param("accessKey")
     token := c.Param("token")
+
     // Verify the access token
     AccessDataResponse, err := helpers.VerifyAccessToken(accessKey, token)
     if err != nil {
         fmt.Println("Error:", err)
         return
     }
+
     // This method uses map interfaces to deal with response data
     accessData, ok := AccessDataResponse["data"].(map[string]interface{})
     if ok {
         fmt.Println("accessData value is accessed",accessData)
         
     }
-    
+
     fileMetaDataValue, ok := accessData["fileMetaData"].([]interface{})
     if ok {
         fmt.Println("fileMetaDataValue is a valid array")
     }
+
     // Custom sorting function
     sort.Slice(fileMetaDataValue, func(i, j int) bool {
         indexI, okI := fileMetaDataValue[i].(map[string]interface{})["index"].(float64)
@@ -104,17 +105,20 @@ func playVideo(c *gin.Context) {
         // Handle the case where type assertions failed
         return false
     })
+
     // Storing sorted data in ipfsMetaData
     ipfsMetaData := fileMetaDataValue
     fmt.Println("ipfsMetaData sorted",ipfsMetaData)
+
     //path creation for checking video file locally 
     path := fmt.Sprintf("videos/%s%s", accessData["accessKey"].(string), accessData["fileName"].(string))
 
-    
     //bool to store filepath exist or not
     isFileExist := helpers.FileExists(path)
+
     //float to store original file size
     videoFileSize := accessData["fileSize"].(float64)
+
     fmt.Println("videoFileSize",videoFileSize)
     localfileSize := helpers.GetFileSize(path)
 	if err != nil {
@@ -122,93 +126,15 @@ func playVideo(c *gin.Context) {
 		return
 	}
     fmt.Println("localfileSize",localfileSize)
-    // if isFileExist && videoFileSize == localfileSize{
-    if !isFileExist{
-    
-        file, err := os.Create(path)
-        if err != nil {
-            fmt.Println("Error creating file:", err)
-            c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to create file"})
-            return
-        }
-        defer file.Close()
-        //for i := 0; i < len(ipfsMetaData); i++ {
-            
-        for i := 0; i < len(ipfsMetaData); i++ {
-            fmt.Println("len(ipfsMetaData)",len(ipfsMetaData))
-            metaData := ipfsMetaData[i].(map[string]interface{})
-            cid, ok := metaData["cid"].(string)
-            if !ok {
-                fmt.Println("Error: 'cid' key not found or has an unexpected type")
-                c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Invalid CID format"})
-                return
-            }
-            url := fmt.Sprintf("http://46.101.133.110:8080/api/v0/cat/%s", cid)
-            response, err := http.Get(url)
-            if err != nil {
-                fmt.Println("Error:", err)
-                c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch file data from IPFS"})
-                return
-            }
-            defer response.Body.Close()
-            fileResponse, err := io.ReadAll(response.Body)
-            if err != nil {
-                fmt.Println("Error:", err)
-                c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to read file response"})
-                return
-            }
-            decryptedData, err := helpers.DecryptedSecretKeyAndFile(
-                accessData["data"].(string),
-                accessData["secretKey"].(string),
-                accessData["accessKey"].(string),
-                accessData["iv"].(string),
-                accessData["salt"].(string),
-                fileResponse,
-            )
-            if err != nil {
-                fmt.Println("Error:", err)
-                c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to decrypt file data"})
-                return
-            }
-            file.Write(decryptedData)
-        }
-        stat, err := file.Stat()
-        if err != nil {
-            fmt.Println("Error getting file information:", err)
-            c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to get file information"})
-            return
-        }
-        fileSize := stat.Size()
-        rangeHeader := c.Request.Header.Get("Range")
-        if rangeHeader != "" {
-            helpers.HandleRangeRequest(c, path, fileSize)
-            return
-        }
-        helpers.HandleFullRequest(c, path, fileSize)
-    } else if videoFileSize == localfileSize{
-        // File exists locally. Stream video...
-        fmt.Println("~ File exists locally. Streaming...")
-        file, err := os.Open(path)
-        if err != nil {
-            fmt.Println("Error opening file:", err)
-            c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to open file"})
-            return
-        }
-        defer file.Close()
-        stat, err := file.Stat()
-        if err != nil {
-            fmt.Println("Error getting file information:", err)
-            c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to get file information"})
-            return
-        }
-        fileSize := stat.Size()
 
-        rangeHeader := c.Request.Header.Get("Range")
-        if rangeHeader != "" {
-            helpers.HandleRangeRequest(c, path, fileSize)
+    if !isFileExist{
+        err := helpers.DownloadAndWriteChunks(ipfsMetaData, accessData, path, c)
+        if err != nil {
+            c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
             return
         }
-        helpers.HandleFullRequest(c, path, fileSize)
+    } else if videoFileSize == localfileSize {
+        helpers.StreamVideo(path, c)
     }  
 }
 
