@@ -146,25 +146,6 @@ func playVideo(c *gin.Context) {
             }
         }()
 
-        // Start a separate goroutine to periodically check if enough data has been downloaded
-        // go func() {
-        //     ticker := time.NewTicker(5 * time.Second) // Adjust the ticker interval as needed
-        //     defer ticker.Stop()
-            
-        //     for range ticker.C {
-        //         // Check if half of the data has been downloaded
-        //         if helpers.GetFileSize(path) >= videoFileSize/4 {
-        //             // Start streaming if enough data is available
-        //             helpers.StreamVideo(path, c)
-        //             return
-        //         }
-        //         // Print some debug information
-        //         fmt.Println("Preparing content for streaming")
-        //         fmt.Println("Local file size:", helpers.GetFileSize(path))
-        //         fmt.Println("fourth of the video file size:", videoFileSize/4)
-        //     }
-        // }()
-        
         // Wait for the download goroutine to finish
         wg.Wait()
     } 
