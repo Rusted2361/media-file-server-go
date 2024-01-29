@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"io/ioutil"
 	"io"
+   // "time"
+    "sync"
     "github.com/gin-gonic/gin"
 	"media-file-server-go/internal/helpers"
 )
@@ -21,9 +23,10 @@ func RegisterRoutes(router *gin.Engine) {
 	router.GET("/api/file/download/:accessKey/:token", downloadFile)
 }
 
+
 ///////////////////////Functions behind each API are defined here////////////////
 		//////////////////////////////////////////////////////
-	
+       
 func getStatus(c *gin.Context) {
 	//test ipaddress
 	ipaddress, err := helpers.GetIPAddress()
@@ -127,15 +130,49 @@ func playVideo(c *gin.Context) {
 	}
     fmt.Println("localfileSize",localfileSize)
 
-    if !isFileExist{
-        err := helpers.DownloadAndWriteChunks(ipfsMetaData, accessData, path, c)
-        if err != nil {
-            c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-            return
-        }
-    } else if videoFileSize == localfileSize {
+   
+    // Start a goroutine to download and decrypt chunks
+    if !isFileExist {
+        
+        var wg sync.WaitGroup
+        wg.Add(1)
+        
+        // Start a goroutine to download and write chunks
+        go func() {
+            defer wg.Done()
+            if err := helpers.DownloadAndWriteChunks(ipfsMetaData, accessData, path, c); err != nil {
+                c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+                return
+            }
+        }()
+
+        // Start a separate goroutine to periodically check if enough data has been downloaded
+        // go func() {
+        //     ticker := time.NewTicker(5 * time.Second) // Adjust the ticker interval as needed
+        //     defer ticker.Stop()
+            
+        //     for range ticker.C {
+        //         // Check if half of the data has been downloaded
+        //         if helpers.GetFileSize(path) >= videoFileSize/4 {
+        //             // Start streaming if enough data is available
+        //             helpers.StreamVideo(path, c)
+        //             return
+        //         }
+        //         // Print some debug information
+        //         fmt.Println("Preparing content for streaming")
+        //         fmt.Println("Local file size:", helpers.GetFileSize(path))
+        //         fmt.Println("fourth of the video file size:", videoFileSize/4)
+        //     }
+        // }()
+        
+        // Wait for the download goroutine to finish
+        wg.Wait()
+    } 
+    if videoFileSize == localfileSize {
+        // Stream the video if it already exists locally
         helpers.StreamVideo(path, c)
-    }  
+    }
+    
 }
 
 func getAccessFile(c *gin.Context) {
