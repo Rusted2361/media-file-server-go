@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"io/ioutil"
 	"io"
-   // "time"
+   	"time"
     "sync"
     "github.com/gin-gonic/gin"
 	"media-file-server-go/internal/helpers"
@@ -130,45 +130,84 @@ func playVideo(c *gin.Context) {
 	}
     fmt.Println("localfileSize",localfileSize)
 
-   
-    // Start a goroutine to download and decrypt chunks
     if !isFileExist {
-        var wg sync.WaitGroup
-        wg.Add(1)
-        
-        // Start a goroutine to download and write chunks
-        go func() {
-            defer wg.Done()
-            if err := helpers.DownloadAndWriteChunks(ipfsMetaData, accessData, path, c); err != nil {
-                c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-                return
-            }
-        }()
+		fmt.Println("I am in case 1")
+		var wg sync.WaitGroup
+		wg.Add(1)
+		
+		// Start a goroutine to download and write chunks
+		go func() {
+			defer wg.Done()
+			if err := helpers.DownloadAndWriteChunks(ipfsMetaData, accessData, path, c); err != nil {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+		}()
+		
+		// Start a separate goroutine to periodically check if enough data has been downloaded
+		go func() {
+			ticker := time.NewTicker(10 * time.Second) // Adjust the ticker interval as needed
+			defer ticker.Stop()
+			
+			for range ticker.C {
+				// Check if half of the data has been downloaded
+				if helpers.GetFileSize(path) >= (videoFileSize/float64(len(ipfsMetaData)))*1 {
+					// Start streaming if enough data is available
+					helpers.StreamVideo(path, c)
+					break
+				}
+				// Print some debug information
+				fmt.Println("Preparing content for streaming")
+				fmt.Println("Local file size:", helpers.GetFileSize(path))
+				fmt.Println("length of video with 2 cids:",  (videoFileSize/float64(len(ipfsMetaData)))*1 )
+			}
+		}()
+		
+		// Wait for the download goroutine to finish
+		wg.Wait()
+	}
 
-        // Wait for the download goroutine to finish
-        wg.Wait()
-    }
-
-    // Check if the file is already downloaded but incomplete
-    if isFileExist && localfileSize < videoFileSize {
-        var wg sync.WaitGroup
-        wg.Add(1)
-        
-        // Start a goroutine to resume downloading and writing chunks
-        go func() {
-            defer wg.Done()
-            if err := helpers.DownloadAndWriteChunks(ipfsMetaData, accessData, path, c); err != nil {
-                c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-                return
-            }
-        }()
-
-        // Wait for the download goroutine to finish
-        wg.Wait()
-    }
+	// Check if the file is already downloaded but incomplete
+	if isFileExist && localfileSize < videoFileSize {
+		fmt.Println("I am in case 2")
+		var wg sync.WaitGroup
+		wg.Add(1)
+		
+		// Start a goroutine to download and write chunks
+		go func() {
+			defer wg.Done()
+			if err := helpers.DownloadAndWriteChunks(ipfsMetaData, accessData, path, c); err != nil {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+		}()
+		
+		// Start a separate goroutine to periodically check if enough data has been downloaded
+		go func() {
+			ticker := time.NewTicker(10 * time.Second) // Adjust the ticker interval as needed
+			defer ticker.Stop()
+			
+			for range ticker.C {
+				// Check if half of the data has been downloaded
+				if helpers.GetFileSize(path) >= (videoFileSize/float64(len(ipfsMetaData)))*1 {
+					// Start streaming if enough data is available
+					helpers.StreamVideo(path, c)
+					break
+				}
+				// Print some debug information
+				fmt.Println("Preparing content for streaming")
+				fmt.Println("Local file size:", helpers.GetFileSize(path))
+				fmt.Println("length of video with 2 cids:",  (videoFileSize/float64(len(ipfsMetaData)))*1 )
+			}
+		}()
+		
+		// Wait for the download goroutine to finish
+		wg.Wait()
+	}
 
     // Stream the video if it already exists locally
     if videoFileSize == localfileSize {
+		fmt.Println("I am in case 3")
         helpers.StreamVideo(path, c)
     }
 
