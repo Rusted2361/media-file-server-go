@@ -133,7 +133,6 @@ func playVideo(c *gin.Context) {
    
     // Start a goroutine to download and decrypt chunks
     if !isFileExist {
-        
         var wg sync.WaitGroup
         wg.Add(1)
         
@@ -148,11 +147,31 @@ func playVideo(c *gin.Context) {
 
         // Wait for the download goroutine to finish
         wg.Wait()
-    } 
+    }
+
+    // Check if the file is already downloaded but incomplete
+    if isFileExist && localfileSize < videoFileSize {
+        var wg sync.WaitGroup
+        wg.Add(1)
+        
+        // Start a goroutine to resume downloading and writing chunks
+        go func() {
+            defer wg.Done()
+            if err := helpers.DownloadAndWriteChunks(ipfsMetaData, accessData, path, c); err != nil {
+                c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+                return
+            }
+        }()
+
+        // Wait for the download goroutine to finish
+        wg.Wait()
+    }
+
+    // Stream the video if it already exists locally
     if videoFileSize == localfileSize {
-        // Stream the video if it already exists locally
         helpers.StreamVideo(path, c)
     }
+
     
 }
 
