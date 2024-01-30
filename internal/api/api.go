@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"io"
    	"time"
+	"os"
     "sync"
     "github.com/gin-gonic/gin"
 	"media-file-server-go/internal/helpers"
@@ -130,12 +131,13 @@ func playVideo(c *gin.Context) {
 	}
     fmt.Println("localfileSize",localfileSize)
 
-    if !isFileExist {
+	var wg sync.WaitGroup
+
+	if !isFileExist {
 		fmt.Println("I am in case 1")
-		var wg sync.WaitGroup
-		wg.Add(1)
-		
-		// Start a goroutine to download and write chunks
+		wg.Add(2) // Increment wait group by 2 for two goroutines
+	
+		// Goroutine for downloading chunks
 		go func() {
 			defer wg.Done()
 			if err := helpers.DownloadAndWriteChunks(ipfsMetaData, accessData, path, c); err != nil {
@@ -143,74 +145,35 @@ func playVideo(c *gin.Context) {
 				return
 			}
 		}()
-		
-		// Start a separate goroutine to periodically check if enough data has been downloaded
-		go func() {
-			ticker := time.NewTicker(10 * time.Second) // Adjust the ticker interval as needed
-			defer ticker.Stop()
-			
-			for range ticker.C {
-				// Check if half of the data has been downloaded
-				if helpers.GetFileSize(path) >= (videoFileSize/float64(len(ipfsMetaData)))*3 {
-					// Start streaming if enough data is available
-					helpers.StreamVideo(path, c)
-					break
-				}
-				// Print some debug information
-				fmt.Println("Preparing content for streaming")
-				fmt.Println("Local file size:", helpers.GetFileSize(path))
-				fmt.Println("length of video with 3 cids:",  (videoFileSize/float64(len(ipfsMetaData)))*3 )
-			}
-		}()
-		
-		// Wait for the download goroutine to finish
-		wg.Wait()
-	}
-
-	// Check if the file is already downloaded but incomplete
-	if isFileExist && localfileSize < videoFileSize {
-		fmt.Println("I am in case 2")
-		var wg sync.WaitGroup
-		wg.Add(1)
-		
-		// Start a goroutine to download and write chunks
+	
+		// Goroutine for checking playback condition
 		go func() {
 			defer wg.Done()
-			if err := helpers.DownloadAndWriteChunks(ipfsMetaData, accessData, path, c); err != nil {
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-		}()
-		
-		// Start a separate goroutine to periodically check if enough data has been downloaded
-		go func() {
-			ticker := time.NewTicker(10 * time.Second) // Adjust the ticker interval as needed
-			defer ticker.Stop()
-			
-			for range ticker.C {
-				// Check if half of the data has been downloaded
+			for {
+				// Check if enough data is downloaded to start playback
 				if helpers.GetFileSize(path) >= (videoFileSize/float64(len(ipfsMetaData)))*3 {
-					// Start streaming if enough data is available
+					fmt.Println("Starting playback...")
 					helpers.StreamVideo(path, c)
-					break
+					fmt.Println("Playback started.")
+					return // Exit after streaming the video
 				}
-				// Print some debug information
-				fmt.Println("Preparing content for streaming")
-				fmt.Println("Local file size:", helpers.GetFileSize(path))
-				fmt.Println("length of video with 3 cids:",  (videoFileSize/float64(len(ipfsMetaData)))*3 )
+	
+				// Wait for some time before checking again
+				time.Sleep(5 * time.Second)
 			}
 		}()
-		
-		// Wait for the download goroutine to finish
 		wg.Wait()
+	} else {
+		if helpers.GetFileSize(path) < (videoFileSize/float64(len(ipfsMetaData)))*3 {
+			err := os.Remove(path)
+			if err != nil {
+				fmt.Println("Error:", err)
+			}
+		} else if helpers.GetFileSize(path) >= (videoFileSize/float64(len(ipfsMetaData)))*3{
+			fmt.Println("I am in case 3")
+			helpers.StreamVideo(path, c)
+		}
 	}
-
-    // Stream the video if it already exists locally
-    if videoFileSize == localfileSize {
-		fmt.Println("I am in case 3")
-        helpers.StreamVideo(path, c)
-    }
-
     
 }
 
