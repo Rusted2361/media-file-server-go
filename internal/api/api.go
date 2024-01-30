@@ -151,7 +151,7 @@ func playVideo(c *gin.Context) {
 			
 			for range ticker.C {
 				// Check if half of the data has been downloaded
-				if helpers.GetFileSize(path) >= (videoFileSize/float64(len(ipfsMetaData)))*1 {
+				if helpers.GetFileSize(path) >= (videoFileSize/float64(len(ipfsMetaData)))*3 {
 					// Start streaming if enough data is available
 					helpers.StreamVideo(path, c)
 					break
@@ -159,7 +159,7 @@ func playVideo(c *gin.Context) {
 				// Print some debug information
 				fmt.Println("Preparing content for streaming")
 				fmt.Println("Local file size:", helpers.GetFileSize(path))
-				fmt.Println("length of video with 2 cids:",  (videoFileSize/float64(len(ipfsMetaData)))*1 )
+				fmt.Println("length of video with 3 cids:",  (videoFileSize/float64(len(ipfsMetaData)))*3 )
 			}
 		}()
 		
@@ -189,7 +189,7 @@ func playVideo(c *gin.Context) {
 			
 			for range ticker.C {
 				// Check if half of the data has been downloaded
-				if helpers.GetFileSize(path) >= (videoFileSize/float64(len(ipfsMetaData)))*1 {
+				if helpers.GetFileSize(path) >= (videoFileSize/float64(len(ipfsMetaData)))*3 {
 					// Start streaming if enough data is available
 					helpers.StreamVideo(path, c)
 					break
@@ -197,7 +197,7 @@ func playVideo(c *gin.Context) {
 				// Print some debug information
 				fmt.Println("Preparing content for streaming")
 				fmt.Println("Local file size:", helpers.GetFileSize(path))
-				fmt.Println("length of video with 2 cids:",  (videoFileSize/float64(len(ipfsMetaData)))*1 )
+				fmt.Println("length of video with 3 cids:",  (videoFileSize/float64(len(ipfsMetaData)))*3 )
 			}
 		}()
 		
