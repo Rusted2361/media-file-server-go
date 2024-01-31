@@ -133,48 +133,76 @@ func playVideo(c *gin.Context) {
 
 	var wg sync.WaitGroup
 
-	if !isFileExist {
-		fmt.Println("I am in case 1")
-		wg.Add(2) // Increment wait group by 2 for two goroutines
-	
-		// Goroutine for downloading chunks
-		go func() {
-			defer wg.Done()
-			if err := helpers.DownloadAndWriteChunks(ipfsMetaData, accessData, path, c); err != nil {
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-		}()
-	
-		// Goroutine for checking playback condition
-		go func() {
-			defer wg.Done()
-			for {
-				// Check if enough data is downloaded to start playback
-				if helpers.GetFileSize(path) >= (videoFileSize/float64(len(ipfsMetaData)))*3 {
-					fmt.Println("Starting playback...")
-					helpers.StreamVideo(path, c)
-					fmt.Println("Playback started.")
-					return // Exit after streaming the video
+	if len(ipfsMetaData) < 3 {
+		if !isFileExist {
+			fmt.Println("I am in case 1 and file size is smaller than 3 cids")
+			wg.Add(1) // Increment wait group by 2 for two goroutines
+		
+			// Goroutine for downloading chunks
+			go func() {
+				defer wg.Done()
+				if err := helpers.DownloadAndWriteChunks(ipfsMetaData, accessData, path, c); err != nil {
+					c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
 				}
-	
-				// Wait for some time before checking again
-				time.Sleep(5 * time.Second)
+			}()
+		
+			wg.Wait()
+			
+		} else {
+			if helpers.GetFileSize(path) == 0 {
+				err := os.Remove(path)
+				if err != nil {
+					fmt.Println("Error:", err)
+				}
+			} else if helpers.GetFileSize(path) > 0 {
+				fmt.Println("I am in case 2 file size is smaller than 3")
+				helpers.StreamVideo(path, c)
 			}
-		}()
-		wg.Wait()
+		}
 	} else {
-		if helpers.GetFileSize(path) < (videoFileSize/float64(len(ipfsMetaData)))*3 {
-			err := os.Remove(path)
-			if err != nil {
-				fmt.Println("Error:", err)
+		if !isFileExist {
+			fmt.Println("I am in case 1")
+			wg.Add(2) // Increment wait group by 2 for two goroutines
+		
+			// Goroutine for downloading chunks
+			go func() {
+				defer wg.Done()
+				if err := helpers.DownloadAndWriteChunks(ipfsMetaData, accessData, path, c); err != nil {
+					c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+			}()
+		
+			// Goroutine for checking playback condition
+			go func() {
+				defer wg.Done()
+				for {
+					// Check if enough data is downloaded to start playback
+					if helpers.GetFileSize(path) >= (videoFileSize/float64(len(ipfsMetaData)))*3 {
+						fmt.Println("Starting playback...")
+						helpers.StreamVideo(path, c)
+						fmt.Println("Playback started.")
+						return // Exit after streaming the video
+					}
+		
+					// Wait for some time before checking again
+					time.Sleep(5 * time.Second)
+				}
+			}()
+			wg.Wait()
+		} else {
+			if helpers.GetFileSize(path) < (videoFileSize/float64(len(ipfsMetaData)))*3 {
+				err := os.Remove(path)
+				if err != nil {
+					fmt.Println("Error:", err)
+				}
+			} else if helpers.GetFileSize(path) >= (videoFileSize/float64(len(ipfsMetaData)))*3{
+				fmt.Println("I am in case 2")
+				helpers.StreamVideo(path, c)
 			}
-		} else if helpers.GetFileSize(path) >= (videoFileSize/float64(len(ipfsMetaData)))*3{
-			fmt.Println("I am in case 3")
-			helpers.StreamVideo(path, c)
 		}
 	}
-    
 }
 
 func getAccessFile(c *gin.Context) {
