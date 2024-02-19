@@ -222,6 +222,42 @@ func getAccessFile(c *gin.Context) {
     if ok {
          fmt.Println("accessData value is accessed")
      }
+	// Set Cache-Control header
+	c.Writer.Header().Set("Cache-Control", "max-age=3600")
+
+	// Set Last-Modified header to the current time
+	c.Writer.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
+
+	// Extract modifiedSince header from the request
+	modifiedSince := c.GetHeader("If-Modified-Since")
+
+	if modifiedSince != "" {
+		// Parse the modifiedSince header
+		clientModifiedTime, err := time.Parse(http.TimeFormat, modifiedSince)
+		if err != nil {
+			fmt.Println("Error:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse modifiedSince header"})
+			return
+		}
+
+		// // Compare client's modified time with the current time
+		// if time.Now().UTC().After(clientModifiedTime.Add(time.Hour * 1)) {
+		// 	// If the resource has been modified, return the resource
+		// 	c.JSON(http.StatusOK, gin.H{"message": "Resource modified"})
+		// 	return
+		// } else {
+		// 	// If the resource has not been modified, return 304 Not Modified
+		// 	c.Status(http.StatusNotModified)
+		// 	return
+		// }
+		// Compare client's modified time with the current time
+		if !(time.Now().UTC().After(clientModifiedTime.Add(time.Hour * 1))) {
+			// If the resource has not been modified, return 304 Not Modified
+			c.Status(http.StatusNotModified)
+			return
+		}
+	}
+
     fileMetaDataValue, ok := accessData["fileMetaData"].([]interface{})
     if ok {
      fmt.Println("fileMetaDataValue is a valid array")
