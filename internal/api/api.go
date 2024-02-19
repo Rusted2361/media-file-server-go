@@ -240,12 +240,18 @@ func getAccessFile(c *gin.Context) {
 			return
 		}
 
+		// // Compare client's modified time with the current time
+		// if time.Now().UTC().After(clientModifiedTime.Add(time.Hour * 1)) {
+		// 	// If the resource has been modified, return the resource
+		// 	c.JSON(http.StatusOK, gin.H{"message": "Resource modified"})
+		// 	return
+		// } else {
+		// 	// If the resource has not been modified, return 304 Not Modified
+		// 	c.Status(http.StatusNotModified)
+		// 	return
+		// }
 		// Compare client's modified time with the current time
-		if time.Now().UTC().After(clientModifiedTime.Add(time.Hour * 1)) {
-			// If the resource has been modified, return the resource
-			c.JSON(http.StatusOK, gin.H{"message": "Resource modified"})
-			return
-		} else {
+		if !(time.Now().UTC().After(clientModifiedTime.Add(time.Hour * 1))) {
 			// If the resource has not been modified, return 304 Not Modified
 			c.Status(http.StatusNotModified)
 			return
