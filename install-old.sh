@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Retrieve input from the user
-read -p 'What is the StorageChain Node name you setup on the Storagechain.io website? ' VarClusterName
+read -p 'What is the cluster name you setup on the Storagechain.io website? ' VarClusterName
 VarClusterName="\"${VarClusterName}\""
 
 read -p 'Enter your StorageChain.io email address: ' VarEmail
@@ -23,6 +23,12 @@ rm -rfv ~/storagechainnode-linux.zip
 # Delete all pm2 processes
 pm2 delete all
 
+# Update package lists
+sudo apt update
+
+# Install necessary packages
+sudo apt install -y curl nano ufw unzip
+
 # Install pm2 globally
 curl -sL https://install.pm2.io | bash
 
@@ -30,7 +36,7 @@ curl -sL https://install.pm2.io | bash
 ufw allow 22,3008,4001,5001,8080,9094,9095,9096/tcp
 
 # Download and unzip the childnode-linux package
-curl -o ~/storagechainnode-linux.zip https://api.storagechain.io/api/file/download/y8xWfbehbc0fj9kfr5dcB8TLC4ySWRXi
+curl -o ~/storagechainnode-linux.zip https://api.storagechain.io/api/file/download/vizJCgVFNfRXAHGWziitBRkT055IS4yD
 unzip -o ~/storagechainnode-linux.zip -d ~/
 
 CONFIG_FILE="~/storagechainnode-linux/startup.sh"
