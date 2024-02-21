@@ -283,7 +283,7 @@ func getAccessFile(c *gin.Context) {
 	// Setting response headers for content type and filename
 	c.Writer.Header().Set("Content-Type", accessData["fileType"].(string))
 	// Set Content-Disposition header to indicate inline display
-	c.Writer.Header().Set("Content-Disposition", "inline; filename=\""+accessData["fileName"].(string)+"\"")
+	//c.Writer.Header().Set("Content-Disposition", "inline; filename=\""+accessData["fileName"].(string)+"\"")
 	//c.Writer.Header().Set("Content-Disposition", accessData["fileName"].(string))
 	//c.Writer.Header().Set("Content-Disposition", fmt.Sprintf(`filename="%s"`, accessData["fileName"].(string)))
 
