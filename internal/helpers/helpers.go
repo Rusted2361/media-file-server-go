@@ -140,7 +140,7 @@ func VerifyAccessToken(accessKey, token string) (map[string]interface{}, error) 
 	}
 
 	// Send a POST request to verify the access token
-	url := fmt.Sprintf("%s/file/access/verify-token", hostURLlive)
+	url := fmt.Sprintf("%s/file/access/verify-token", hostURLdev)
 	resp, err := client.Post(
 		url,
 		"application/json",

@@ -45,7 +45,7 @@ func main() {
 	// Start video deletion task
 	go recursion.CleanVideoDirectory("videos")
 
-	if err := router.Run(":3008"); err != nil {
+	if err := router.Run(":3009"); err != nil {
 		log.Println("Failed to start the server:", err)
 	}
 }
