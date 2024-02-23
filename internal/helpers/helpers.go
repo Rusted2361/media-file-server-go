@@ -262,7 +262,7 @@ func DownloadAndWriteChunks(ipfsMetaData []interface{}, accessData map[string]in
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Invalid CID format"})
 			return err
 		}
-		url := fmt.Sprintf("http://46.101.133.110:8080/api/v0/cat/%s", cid)
+		url := fmt.Sprintf("http://89.117.72.26:8080/api/v0/cat/%s", cid)
 		response, err := http.Get(url)
 		if err != nil {
 			fmt.Println("Error:", err)

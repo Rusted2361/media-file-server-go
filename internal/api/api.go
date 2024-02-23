@@ -216,9 +216,10 @@ func getAccessFile(c *gin.Context) {
 		fmt.Println("Error:", err)
 		return
 	}
-
+	fmt.Println("AccessDataResponse",AccessDataResponse)
 	//This method uses map interfaces to deal with response data
     accessData, ok := AccessDataResponse["data"].(map[string]interface{})
+	fmt.Println("accessData",accessData)	
     if ok {
          fmt.Println("accessData value is accessed")
      }
@@ -279,9 +280,12 @@ func getAccessFile(c *gin.Context) {
     // Storing sorted data in ipfsMetaData
     ipfsMetaData := fileMetaDataValue
     fmt.Println("ipfsMetaData sorted",ipfsMetaData)	
-
+	fmt.Println("fileName", accessData["fileName"].(string))
 	// Setting response headers for content type and filename
-	c.Writer.Header().Set("Content-Type", accessData["fileType"].(string))
+	// Set the Content-Type header based on the file type
+    c.Writer.Header().Set("Content-Type", accessData["fileType"].(string))
+	// Set Content-Disposition header to indicate inline display
+	c.Writer.Header().Set("Content-Disposition", "inline; filename=\""+accessData["fileName"].(string)+"\"")
 	//c.Writer.Header().Set("Content-Disposition", accessData["fileName"].(string))
 	//c.Writer.Header().Set("Content-Disposition", fmt.Sprintf(`filename="%s"`, accessData["fileName"].(string)))
 
@@ -316,7 +320,7 @@ func getAccessFile(c *gin.Context) {
             }
 
             // Making an HTTP GET request to fetch file data from IPFS
-            url := fmt.Sprintf("http://46.101.133.110:8080/api/v0/cat/%s", cid)
+            url := fmt.Sprintf("http://89.117.72.26:8080/api/v0/cat/%s", cid)
 			
             // Make an HTTP GET request
             respone, err := client.Get(url)
@@ -429,7 +433,7 @@ func downloadFile(c *gin.Context) {
 				}
 	
 				// Making an HTTP GET request to fetch file data from IPFS
-				url := fmt.Sprintf("http://46.101.133.110:8080/api/v0/cat/%s", cid)
+				url := fmt.Sprintf("http://89.117.72.26:8080/api/v0/cat/%s", cid)
 				
 				// Make an HTTP GET request
 				respone, err := client.Get(url)
