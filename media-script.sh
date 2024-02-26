@@ -37,4 +37,4 @@ rm -rf file-server-lin file-server-mac file-server-win.exe
 ./build.sh
 
 # Start PM2 process for staging
-pm2 start ./file-server-lin --name Media-Server-Staging-V2
+pm2 start ./file-server-lin --name Media-Dev-Staging-V2
