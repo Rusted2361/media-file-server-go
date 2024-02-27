@@ -42,8 +42,8 @@ func HeartBeat() {
 		// Check the local IPFS Cluster and IPFS node status
 		clusterResponseLocal, _ := helpers.GetClusterID()
 		ipfsResponseLocal, _ := helpers.GetIpfsId()
-		fmt.Printf("clusterResponseLocal: %s", clusterResponseLocal)
-		fmt.Printf("clusterResponseLocal: %s", ipfsResponseLocal)
+		fmt.Printf("clusterResponseLocal: %s\n", clusterResponseLocal)
+		fmt.Printf("ipfsResponseLocal: %s\n", ipfsResponseLocal)
 		// If either local IPFS Cluster and IPFS node is not running, exit the application
 		if len(clusterResponseLocal) == 0 || len(ipfsResponseLocal) == 0 {
 			log.Print("🌐 Ipfs Cluster or Ipfs is not running locally.")
