@@ -1,21 +1,22 @@
 package recursion
 
 import (
-	"time"
-	"fmt"
-	"path/filepath"
 	"encoding/json"
-	"net/http"
-	"os"
-	"strings"
+	"fmt"
 	"log"
 	"media-file-server-go/internal/helpers"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 )
-////////////////////////////Recursive functions///////////////////////
-		//////////////////////////////////////////////////////
-/////Data Structures//////
+
+// //////////////////////////Recursive functions///////////////////////
+// ////////////////////////////////////////////////////
+// ///Data Structures//////
 type NodeDetailsResponse struct {
-	Success bool `json:"success"`
+	Success bool   `json:"success"`
 	Message string `json:"message"`
 	Data    struct {
 		IPFSID        string `json:"ipfsId"`
@@ -25,15 +26,16 @@ type NodeDetailsResponse struct {
 	Status int `json:"status"`
 }
 type UpdateNodeDetailsRequest struct {
-	IPAddress      string `json:"ipAddress"`
-	IPFSClusterID  string `json:"ipfsClusterId"`
-	IPFSID         string `json:"ipfsId"`
+	IPAddress     string `json:"ipAddress"`
+	IPFSClusterID string `json:"ipfsClusterId"`
+	IPFSID        string `json:"ipfsId"`
 }
 
-/////Constants//////
-const retryDelay = 5 * time.Second;
-const maxRetries = 2;
-const hostURL = "https://storagechain-be.invo.zone/api";
+// ///Constants//////
+const retryDelay = 5 * time.Second
+const maxRetries = 2
+const hostURL = "https://storagechain-be.invo.zone/api"
+
 //const hostURL = "https://api.storagechain.io/api";
 
 // this will recursively check for clusterid and ipfs id
@@ -42,6 +44,8 @@ func HeartBeat() {
 		// Check the local IPFS Cluster and IPFS node status
 		clusterResponseLocal, _ := helpers.GetClusterID()
 		ipfsResponseLocal, _ := helpers.GetIpfsId()
+		fmt.Printf("ipfsResponseLocal: %s", ipfsResponseLocal)
+		fmt.Printf("clusterResponseLocal: %s", ipfsResponseLocal)
 
 		// If either local IPFS Cluster and IPFS node is not running, exit the application
 		if len(clusterResponseLocal) == 0 || len(ipfsResponseLocal) == 0 {
@@ -76,7 +80,7 @@ func HeartBeat() {
 	}
 }
 
-//Savenode details to DB
+// Savenode details to DB
 func SaveNodeDetails(retries int) {
 	if retries == maxRetries {
 		log.Print("❌ Retries", maxRetries, "times but didn't succeed")
@@ -111,7 +115,7 @@ func SaveNodeDetails(retries int) {
 		return
 	}
 	log.Print("🚀 IPFS Cluster ID:", ipfsClusterID)
-	
+
 	nodeDetailsResponse, err := GetNodeDetails(ipAddress)
 	if err != nil {
 		log.Print("Error getting node details:", err)
@@ -177,7 +181,7 @@ func CleanVideoDirectory(directory string) {
 		log.Print("🗑 junk deletion check completed. Waiting for the next check after " + fmt.Sprintf("%v", interval) + " seconds...")
 		// Sleep for 30 seconds before the next junk deletion
 		time.Sleep(time.Duration(interval) * time.Second)
-		
+
 	}
 }
 

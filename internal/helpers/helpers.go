@@ -2,37 +2,39 @@ package helpers
 
 import (
 	"bytes"
-	"encoding/json"
-	"time"
-	"fmt"
-	"io/ioutil"
-	"os"
-	"io"
-	"strconv"
-	"strings"
-	"net/http"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/hex"
-	"golang.org/x/crypto/pbkdf2"
+	"encoding/json"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/pbkdf2"
 )
-const hostURLstage = "https://staging-be.storagechain.io/api/";
-const hostURLdev = "https://storagechain-be.invo.zone/api";
-const hostURLlive = "https://api.storagechain.io/api";
+
+const hostURLstage = "https://staging-be.storagechain.io/api/"
+const hostURLdev = "https://storagechain-be.invo.zone/api"
+const hostURLlive = "https://api.storagechain.io/api"
+
 type IpfsID struct {
-    Id string
+	Id string
 }
 
 type ClusterID struct {
-    Id string
+	Id string
 }
 
-
-/////////////////////Helper Functions are defined here////////////////
-		//////////////////////////////////////////////////////
-//get ip address
+// ///////////////////Helper Functions are defined here////////////////
+// ////////////////////////////////////////////////////
+// get ip address
 func GetIPAddress() (string, error) {
 	req, err := http.Get("https://httpbin.org/ip")
 	if err != nil {
@@ -62,14 +64,16 @@ func GetIPAddress() (string, error) {
 
 // getIpfsId fetches ID from an IPFS node based on the given IP address.
 func GetIpfsId(ipAddress ...string) (string, error) {
+	fmt.Println(" ipfsid  ipAddress:", ipAddress)
+
 	// Construct the URL for the IPFS node's /api/v0/id endpoint
 	var url string
 	payload := []byte("")
 	if len(ipAddress) > 0 {
-		url = fmt.Sprintf("http://%s:5001/api/v0/id", ipAddress)
-		
+		url = fmt.Sprintf("http://%s:5001/api/v0/id", "178.63.154.96")
+
 	} else {
-		url = "http://localhost:5001/api/v0/id"
+		url = "http://178.63.154.96:5001/api/v0/id"
 		//url = "http://135.181.55.235:5001/api/v0/id"
 	}
 
@@ -79,6 +83,7 @@ func GetIpfsId(ipAddress ...string) (string, error) {
 		// Return an empty string and the error if the request fails
 		return "", err
 	}
+
 	defer response.Body.Close()
 
 	// Read the response body
@@ -88,8 +93,14 @@ func GetIpfsId(ipAddress ...string) (string, error) {
 		return "", err
 	}
 	var ipfsid IpfsID
-    json.Unmarshal(body, &ipfsid)
+	json.Unmarshal(body, &ipfsid)
+	errMar := json.Unmarshal(body, &ipfsid)
+	if errMar != nil {
+		fmt.Println("error ipfsid data:", errMar)
+	}
 	// Convert the response body to a string and return it
+	fmt.Println("ipfsid data:", ipfsid)
+	fmt.Println("ipfsid data---id:", ipfsid.Id)
 	return ipfsid.Id, nil
 }
 
@@ -99,10 +110,10 @@ func GetClusterID(ipAddress ...string) (string, error) {
 	var url string
 
 	if len(ipAddress) > 0 {
-		url = fmt.Sprintf("http://%s:9094/id", ipAddress)
+		url = fmt.Sprintf("http://%s:9094/id", "178.63.154.96")
 	} else {
 		//url = "http://135.181.55.235:9084/id"
-		url = "http://localhost:9094/id"
+		url = "http://178.63.154.96:9094/id"
 	}
 
 	// Make an HTTP GET request to the IPFS node
@@ -120,7 +131,12 @@ func GetClusterID(ipAddress ...string) (string, error) {
 		return "", err
 	}
 	var clusterid ClusterID
-    json.Unmarshal(body, &clusterid)
+	errMar := json.Unmarshal(body, &clusterid)
+	if errMar != nil {
+		fmt.Println("error travsersiinig data:", errMar)
+	}
+	fmt.Println("datta -- clusterid:", clusterid)
+	fmt.Println("datta -- clusterid--id:", clusterid.Id)
 	// Convert the response body to a string and return it
 	return clusterid.Id, nil
 }
@@ -172,7 +188,7 @@ func decryptor(key, trimiv, data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Create a GCM cipher mode
 	aesgcm, err := cipher.NewGCMWithNonceSize(b, 32)
 	if err != nil {
@@ -188,8 +204,8 @@ func decryptor(key, trimiv, data []byte) ([]byte, error) {
 }
 
 // Function to derive pbkf2 keyfrom secret key and salt
-func deriveKey(secretKey string, userSalt string) ([]byte) {
-	
+func deriveKey(secretKey string, userSalt string) []byte {
+
 	// Derive the key using PBKDF2 with provided salt and other parameters
 	derivedKey := pbkdf2.Key([]byte(secretKey), []byte(userSalt), 1000, 32, sha256.New)
 	// Return the derived key
@@ -198,7 +214,7 @@ func deriveKey(secretKey string, userSalt string) ([]byte) {
 
 // Function to decrypt key and then decrypt data using AES-GCM
 func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, fileData []byte) ([]byte, error) {
-    
+
 	//Nonce and data to decrypt Master Key
 	//nonce/iv to decrypt key
 	trimaccessKey := []byte(accessKey)
@@ -210,33 +226,33 @@ func DecryptedSecretKeyAndFile(data, secretKey, accessKey, iv, userSalt string, 
 	//fileData contains the original data to be decrypted
 
 	//gcm method
-	key:= deriveKey(secretKey, userSalt)
+	key := deriveKey(secretKey, userSalt)
 
 	decryptedKey, err := decryptor(key, trimaccessKey, hexdata)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("DecryptedKey accessed",decryptedKey)
-	
+	fmt.Println("DecryptedKey accessed", decryptedKey)
+
 	//Decrypt the Data
 	decryptedData, err := decryptor(decryptedKey, trimiv, fileData)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return nil, err
 	}
-	fmt.Println("Decrypted Data accessed",decryptedData[:100])
+	fmt.Println("Decrypted Data accessed", decryptedData[:100])
 	//return Decrypted Data
 	return decryptedData, nil
 }
 
-//Function to check filepath
+// Function to check filepath
 func FileExists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
 }
 
-//Function to get filesize
-func GetFileSize(filePath string) (float64) {
+// Function to get filesize
+func GetFileSize(filePath string) float64 {
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
 		return 0
@@ -244,18 +260,18 @@ func GetFileSize(filePath string) (float64) {
 	return float64(fileInfo.Size())
 }
 
-//Function to decrypt and download
-func DownloadAndWriteChunks(ipfsMetaData []interface{}, accessData map[string]interface{}, path string, c *gin.Context) error  {
-    file, err := os.Create(path)
+// Function to decrypt and download
+func DownloadAndWriteChunks(ipfsMetaData []interface{}, accessData map[string]interface{}, path string, c *gin.Context) error {
+	file, err := os.Create(path)
 	if err != nil {
 		fmt.Println("Error creating file:", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to create file"})
 		return err
 	}
 	defer file.Close()
-		
+
 	for i := 0; i < len(ipfsMetaData); i++ {
-		fmt.Println("len(ipfsMetaData)",len(ipfsMetaData))
+		fmt.Println("len(ipfsMetaData)", len(ipfsMetaData))
 		metaData := ipfsMetaData[i].(map[string]interface{})
 		cid, ok := metaData["cid"].(string)
 		if !ok {
@@ -309,30 +325,30 @@ func DownloadAndWriteChunks(ipfsMetaData []interface{}, accessData map[string]in
 	return nil
 }
 
-//Function to stream local video
+// Function to stream local video
 func StreamVideo(path string, c *gin.Context) {
-    fmt.Println("~ File exists locally. Streaming...")
-    file, err := os.Open(path)
-    if err != nil {
-        c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-    defer file.Close()
-    stat, err := file.Stat()
-    if err != nil {
-        c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-    fileSize := stat.Size()
-    rangeHeader := c.Request.Header.Get("Range")
-    if rangeHeader != "" {
-        HandleRangeRequest(c, path, fileSize)
-        return
-    }
-    HandleFullRequest(c, path, fileSize)
+	fmt.Println("~ File exists locally. Streaming...")
+	file, err := os.Open(path)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer file.Close()
+	stat, err := file.Stat()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	fileSize := stat.Size()
+	rangeHeader := c.Request.Header.Get("Range")
+	if rangeHeader != "" {
+		HandleRangeRequest(c, path, fileSize)
+		return
+	}
+	HandleFullRequest(c, path, fileSize)
 }
 
-//Function to handle partial content
+// Function to handle partial content
 func HandleRangeRequest(c *gin.Context, path string, fileSize int64) {
 	parts := c.Request.Header.Get("Range")[6:] // Remove "bytes=" prefix
 	rangeValues := strings.Split(parts, "-")
@@ -376,7 +392,7 @@ func HandleRangeRequest(c *gin.Context, path string, fileSize int64) {
 	io.CopyN(c.Writer, file, chunksize)
 }
 
-//Function to handle full content
+// Function to handle full content
 func HandleFullRequest(c *gin.Context, path string, fileSize int64) {
 	file, err := os.Open(path)
 	if err != nil {
