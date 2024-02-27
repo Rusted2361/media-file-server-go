@@ -70,7 +70,7 @@ func GetIpfsId(ipAddress ...string) (string, error) {
 		url = fmt.Sprintf("http://%s:5001/api/v0/id", ipAddress)
 		
 	} else {
-		url = "http://localhost:5001/api/v0/id"
+		url = "http://127.0.0.1:5001/api/v0/id"
 		//url = "http://135.181.55.235:5001/api/v0/id"
 	}
 
