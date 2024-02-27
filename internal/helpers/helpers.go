@@ -2,7 +2,7 @@ package helpers
 
 import (
 	"bytes"
-	"log"
+	//"log"
 	"encoding/json"
 	"time"
 	"fmt"
