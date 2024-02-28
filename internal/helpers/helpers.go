@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"bytes"
+	"log"
 	"encoding/json"
 	"time"
 	"fmt"
@@ -18,7 +19,7 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 	"github.com/gin-gonic/gin"
 )
-const hostURLstage = "https://staging-be.storagechain.io/api/";
+const hostURLstage = "https://staging-be.storagechain.io/api";
 const hostURLdev = "https://storagechain-be.invo.zone/api";
 const hostURLlive = "https://api.storagechain.io/api";
 type IpfsID struct {
@@ -69,7 +70,7 @@ func GetIpfsId(ipAddress ...string) (string, error) {
 		url = fmt.Sprintf("http://%s:5001/api/v0/id", ipAddress)
 		
 	} else {
-		url = "http://localhost:5001/api/v0/id"
+		url = "http://127.0.0.1:5001/api/v0/id"
 		//url = "http://135.181.55.235:5001/api/v0/id"
 	}
 
@@ -85,8 +86,11 @@ func GetIpfsId(ipAddress ...string) (string, error) {
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		// Return an empty string and the error if reading the body fails
+		fmt.Println("Error getting IpfsID:", err)
 		return "", err
 	}
+	log.Printf("response body of IpfsID: %s", string(body))
+
 	var ipfsid IpfsID
     json.Unmarshal(body, &ipfsid)
 	// Convert the response body to a string and return it
@@ -102,7 +106,7 @@ func GetClusterID(ipAddress ...string) (string, error) {
 		url = fmt.Sprintf("http://%s:9094/id", ipAddress)
 	} else {
 		//url = "http://135.181.55.235:9084/id"
-		url = "http://localhost:9094/id"
+		url = "http://127.0.0.1:9094/id"
 	}
 
 	// Make an HTTP GET request to the IPFS node
@@ -117,9 +121,11 @@ func GetClusterID(ipAddress ...string) (string, error) {
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		// Return an empty string and the error if reading the body fails
+		fmt.Println("Error getting ClusterID:", err)
 		return "", err
 	}
 	var clusterid ClusterID
+	log.Printf("response body of http://127.0.0.1:9094/id: %s", string(body))
     json.Unmarshal(body, &clusterid)
 	// Convert the response body to a string and return it
 	return clusterid.Id, nil

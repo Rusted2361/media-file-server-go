@@ -33,8 +33,8 @@ type UpdateNodeDetailsRequest struct {
 /////Constants//////
 const retryDelay = 5 * time.Second;
 const maxRetries = 2;
-const hostURL = "https://storagechain-be.invo.zone/api";
-//const hostURL = "https://api.storagechain.io/api";
+//const hostURL = "https://storagechain-be.invo.zone/api";
+const hostURL = "https://api.storagechain.io/api";
 
 // this will recursively check for clusterid and ipfs id
 func HeartBeat() {
@@ -118,7 +118,7 @@ func SaveNodeDetails(retries int) {
 		retry()
 		return
 	}
-	// log.Print("Node Details Response:", nodeDetailsResponse)
+	log.Print("Node Details Response:", nodeDetailsResponse)
 
 	if nodeDetailsResponse.Data.IPFSClusterID != "" {
 		log.Print("✨ Node details are already updated")
