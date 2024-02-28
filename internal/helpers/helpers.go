@@ -2,7 +2,7 @@ package helpers
 
 import (
 	"bytes"
-	"log"
+	//"log"
 	"encoding/json"
 	"time"
 	"fmt"
@@ -89,7 +89,7 @@ func GetIpfsId(ipAddress ...string) (string, error) {
 		fmt.Println("Error getting IpfsID:", err)
 		return "", err
 	}
-	log.Printf("response body of IpfsID: %s", string(body))
+	//log.Printf("response body of IpfsID: %s", string(body))
 
 	var ipfsid IpfsID
     json.Unmarshal(body, &ipfsid)
@@ -125,7 +125,7 @@ func GetClusterID(ipAddress ...string) (string, error) {
 		return "", err
 	}
 	var clusterid ClusterID
-	log.Printf("response body of http://127.0.0.1:9094/id: %s", string(body))
+	//log.Printf("response body of http://127.0.0.1:9094/id: %s", string(body))
     json.Unmarshal(body, &clusterid)
 	// Convert the response body to a string and return it
 	return clusterid.Id, nil
