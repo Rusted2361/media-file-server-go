@@ -19,7 +19,7 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 	"github.com/gin-gonic/gin"
 )
-const hostURLstage = "https://staging-be.storagechain.io/api/";
+const hostURLstage = "https://staging-be.storagechain.io/api";
 const hostURLdev = "https://storagechain-be.invo.zone/api";
 const hostURLlive = "https://api.storagechain.io/api";
 type IpfsID struct {
