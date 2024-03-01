@@ -1,10 +1,5 @@
 #!/bin/bash
 
-#run important services
-systemctl restart ipfs.service
-systemctl restart ipfs-cluster.service
-systemctl restart s3-integration-svc
-
 # Delete all PM2 processes
 pm2 delete all
 
