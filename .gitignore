@@ -2,3 +2,6 @@
 file-server-lin
 file-server-mac
 file-server-win.exe
+
+# Ignore the videos folder
+videos/
