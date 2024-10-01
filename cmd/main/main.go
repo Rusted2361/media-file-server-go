@@ -1,24 +1,23 @@
 package main
 
 import (
-	//"fmt"
-	"time"
 	"log"
-	"github.com/gin-gonic/gin"
 	"media-file-server-go/internal/api"
 	"media-file-server-go/internal/recursion"
-	
+	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
-/////////////////////routes bind with specific function behind it///////////////////
-		//////////////////////////////////////////////////////
+// ///////////////////routes bind with specific function behind it///////////////////
+// ////////////////////////////////////////////////////
 func main() {
 	// Delay for 10 seconds before starting HeartBeat
 	time.Sleep(6 * time.Second)
 
 	// Start SaveNodeDetails immediately
 	go recursion.SaveNodeDetails(0)
-	
+
 	// Register API routes
 	router := gin.Default()
 	api.RegisterRoutes(router)
