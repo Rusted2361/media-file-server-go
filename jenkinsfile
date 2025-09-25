@@ -15,15 +15,15 @@ pipeline {
             }
         }
 
-        // stage('Deploy') {
-        //     steps {
-        //         sshagent(['ec2-ssh-key']) {
-        //             sh '''
-        //                 scp mediaservice ubuntu@65.1.146.244:/usr/local/bin/
-        //                 ssh ubuntu@65.1.146.244 "sudo systemctl restart mediaservice"
-        //             '''
-        //         }
-        //     }
-        // }
+        stage('Deploy') {
+            steps {
+                sshagent(['ec2-ssh-key']) {
+                    sh '''
+                        scp mediaservice ubuntu@65.1.146.244:/usr/local/bin/
+                        ssh ubuntu@65.1.146.244 "sudo systemctl restart mediaservice"
+                    '''
+                }
+            }
+        }
     }
 }
