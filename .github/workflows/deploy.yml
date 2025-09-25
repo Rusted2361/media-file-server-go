@@ -27,7 +27,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "mediaservice"
-          target: "/usr/local/bin/"
+          target: "/home/ubuntu/"
 
       - name: Restart service on EC2
         uses: appleboy/ssh-action@v1.0.3
@@ -36,4 +36,6 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            sudo mv /home/ubuntu/mediaservice /usr/local/bin/mediaservice
+            sudo chmod +x /usr/local/bin/mediaservice
             sudo systemctl restart mediaservice
