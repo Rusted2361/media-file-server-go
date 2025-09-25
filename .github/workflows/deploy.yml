@@ -18,7 +18,7 @@ jobs:
           go-version: '1.22'
 
       - name: Build Go app
-        run: go build -o mediaservice main.go
+        run: go build -o /usr/local/bin/ main.go
 
       - name: Copy binary to EC2
         uses: appleboy/scp-action@v0.1.7
