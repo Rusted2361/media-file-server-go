@@ -27,7 +27,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "mediaservice"
-          target: "~/media-file-server-go/"
+          target: "/usr/local/bin/"
 
       - name: Restart service on EC2
         uses: appleboy/ssh-action@v1.0.3
