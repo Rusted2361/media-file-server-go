@@ -35,7 +35,7 @@ func getStatus(c *gin.Context) {
 	//test ipaddress
 	ipaddress, err := helpers.GetIPAddress()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch cluster ID"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch  ID"})
 		return
 	}
 
@@ -44,7 +44,7 @@ func getStatus(c *gin.Context) {
 	//test ipfs id
 	ipfsid, err := helpers.GetIpfsId()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch cluster ID"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch  ID"})
 		return
 	}
 
@@ -53,7 +53,7 @@ func getStatus(c *gin.Context) {
 	//test clusterid function
 	clusterid, err := helpers.GetClusterID()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch cluster ID"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch  ID"})
 		return
 	}
 
