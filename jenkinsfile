@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'git@github.com:your-org/mediaservice.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'go build -o mediaservice main.go'
+            }
+        }
+
+        // stage('Deploy') {
+        //     steps {
+        //         sshagent(['ec2-ssh-key']) {
+        //             sh '''
+        //                 scp mediaservice ubuntu@65.1.146.244:/usr/local/bin/
+        //                 ssh ubuntu@65.1.146.244 "sudo systemctl restart mediaservice"
+        //             '''
+        //         }
+        //     }
+        // }
+    }
+}
