@@ -18,7 +18,7 @@ jobs:
           go-version: '1.19'
 
       - name: Build Go app
-        run: go build -o mediaservice ./cmd/main/main.go
+        run: go build -o main ./cmd/main/main.go
 
       - name: Copy binary to EC2
         uses: appleboy/scp-action@v0.1.7
@@ -26,7 +26,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "mediaservice"
+          source: "main"
           target: "/usr/local/bin/"
 
       - name: Restart service on EC2
