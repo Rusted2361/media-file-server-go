@@ -37,5 +37,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             sudo mv /home/ubuntu/mediaservice /usr/local/bin/mediaservice
+            sudo systemctl daemon-reload
             sudo chmod +x /usr/local/bin/mediaservice
             sudo systemctl restart mediaservice
