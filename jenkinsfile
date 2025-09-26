@@ -9,7 +9,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'git@github.com:your-org/mediaservice.git'
+                    url: 'https://github.com/Rusted2361/media-file-server-go.git',
+                    credentialsId: 'github-creds'
             }
         }
 
@@ -21,10 +22,10 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sshagent(['ec2-ssh-key']) {
+                sshagent(credentials: ['ec2-ssh-key']) {
                     sh '''
-                        scp mediaservice ubuntu@65.1.146.244:/usr/local/bin/
-                        ssh ubuntu@65.1.146.244 "sudo systemctl restart mediaservice"
+                    scp -o StrictHostKeyChecking=no mediaservice ubuntu@65.1.146.244:/usr/local/bin/mediaservice
+                    ssh -o StrictHostKeyChecking=no ubuntu@65.1.146.244 "sudo systemctl daemon-reload && sudo systemctl restart mediaservice"
                     '''
                 }
             }
